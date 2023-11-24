@@ -19,6 +19,9 @@
 #include <cstdint>
 #include <cassert>
 
+#include <iostream>
+#include <cstring>
+
 #include "mpi-utils.h"
 
 
@@ -418,9 +421,9 @@ static inline void recordOldMeans(const struct Options &options,
                                   uint64_t *oldMeanSize)
 {
   //remember the old values and sizes of the means for checking the convergence Delta
-  memcpy(oldMeanValues[0], meanValues[0],
+  std::memcpy(oldMeanValues[0], meanValues[0],
          options.numMeans * options.dataDim * sizeof(double));
-  memcpy(oldMeanSize, meanSize, options.numMeans * sizeof(uint64_t));
+  std::memcpy(oldMeanSize, meanSize, options.numMeans * sizeof(uint64_t));
 }
 
 static inline bool meanHasMoved(const struct Options &options,
