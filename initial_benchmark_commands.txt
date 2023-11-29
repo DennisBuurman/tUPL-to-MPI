@@ -1,0 +1,152 @@
+### Quick Start
+
+# Create a directory to store datasets:
+# Some datasets are available at "/var/scratch/krietvel/kmeans"
+
+mkdir /var/scratch/accountname/kmeans
+
+# Generating datasets can be done with:
+ *  @param size: number of points generated
+ *  @param clusters: number of clusters generated
+ *  @param dimension: dimension of the data points (and clusters) generated
+ *  @param output dir:
+ *          - generated data points are written to "data.txt" in this directory
+ *          - the intended membership for each point is written to a file named "intended_membership.txt"
+ *          - the generated cluster centres with their standard deviation and size are written to a file named "generated_cluster_centres.txt"
+ * defaults = { "size": 28, "clusters": 4, "dimension": 4, "seed": 971 }
+
+./datasets.py create --datapath /var/scratch/accountname/kmeans \
+    --size $size --clusters $clusters --dimension $dimension --seed $seed
+
+# List the currently available datasets in a directory with:
+
+./datasets.py list --datapath /var/scratch/accountname/kmeans
+
+# Submit a job using the submit-exp.py script. When multiple experiment parameters are specified, multiple jobs will be submitted:
+ * @param --datapath: path to data directory
+ * @param -o: output directory for job scripts, if not specified jobs will be submitted immediately.
+ * @param --nodes: number of nodes used
+ * @param --ntasks-per-node: number of tasks per node
+ * @param --variant: variant of the k-menas algorithm to run ("own", "own_inc", "own_loc", "own_inc_loc")
+ * @param --repeat: number of times to repeat the experiment.
+ * @param --size: dataset sizes to use
+ * @param --clusters: cluster sizes to use
+ * @param --seed: seeds to use
+ * defaults = {"nodes": "8", "ntasks-per-node": "8", "variant": "own", "repeat": 5}
+
+./submit-exp.py --datapath /var/scratch/accountname/kmeans \
+    --variant $variant --repeat $repeat --size $size --clusters $clusters --seed $seed
+
+***********************************************************************************************************************************************
+
+# For the experiment parameters, only values that differ from the default values are denoted
+
+### Experiment 1: The calculation time of the k-Means implementations for different dataset sizes.
+
+mkdir /var/scratch/dbuurman/kmeans
+
+# Dataset:
+ - size = [20,21,22,23,24,25,26,27,28]
+
+./datasets.py create --datapath /var/scratch/accountname/kmeans \
+    --size 20 21 22 23 24 25 26 27 28
+
+# Jobs:
+./submit-exp.py --datapath /var/scratch/dbuurman/kmeans \
+    --variant own --size 20 21 22 23 24 25 26 27 28 --clusters 4 --seed 971
+./submit-exp.py --datapath /var/scratch/dbuurman/kmeans \
+    --variant own_inc --size 20 21 22 23 24 25 26 27 28 --clusters 4 --seed 971
+./submit-exp.py --datapath /var/scratch/dbuurman/kmeans \
+    --variant own_loc --size 20 21 22 23 24 25 26 27 28 --clusters 4 --seed 971
+./submit-exp.py --datapath /var/scratch/dbuurman/kmeans \
+    --variant own_inc_loc --size 20 21 22 23 24 25 26 27 28 --clusters 4 --seed 971
+
+
+### Experiment 2: The calculation time of the k-Means implementations for varying numbers of threads.
+# thread numbers: [$nodes,$ntasks-per-node]: 
+   [[1, 2], 
+    [1, 4], 
+    [1, 8], 
+    [2, 6], 
+    [2, 8],
+    [3, 8], 
+    [4, 8], 
+    [5, 8], 
+    [6, 8], 
+    [7, 8],
+    [8, 8]]
+
+# Dataset:
+ - size = 26
+
+./datasets.py create --datapath /var/scratch/accountname/kmeans \
+    --size 26
+
+# Jobs:
+./submit-exp.py --datapath /var/scratch/dbuurman/kmeans \
+    --variant own --size 26 --clusters 4 --seed 971 --nodes 1 --ntasks-per-node 2 4 8
+./submit-exp.py --datapath /var/scratch/dbuurman/kmeans \
+    --variant own --size 26 --clusters 4 --seed 971 --nodes 2 --ntasks-per-node 6 8
+./submit-exp.py --datapath /var/scratch/dbuurman/kmeans \
+    --variant own --size 26 --clusters 4 --seed 971 --nodes 3 4 5 6 7 8 --ntasks-per-node 8
+
+./submit-exp.py --datapath /var/scratch/dbuurman/kmeans \
+    --variant own_inc --size 26 --clusters 4 --seed 971 --nodes 1 --ntasks-per-node 2 4 8
+./submit-exp.py --datapath /var/scratch/dbuurman/kmeans \
+    --variant own_inc --size 26 --clusters 4 --seed 971 --nodes 2 --ntasks-per-node 6 8
+./submit-exp.py --datapath /var/scratch/dbuurman/kmeans \
+    --variant own_inc --size 26 --clusters 4 --seed 971 --nodes 3 4 5 6 7 8 --ntasks-per-node 8
+
+./submit-exp.py --datapath /var/scratch/dbuurman/kmeans \
+    --variant own_loc --size 26 --clusters 4 --seed 971 --nodes 1 --ntasks-per-node 2 4 8
+./submit-exp.py --datapath /var/scratch/dbuurman/kmeans \
+    --variant own_loc --size 26 --clusters 4 --seed 971 --nodes 2 --ntasks-per-node 6 8
+./submit-exp.py --datapath /var/scratch/dbuurman/kmeans \
+    --variant own_loc --size 26 --clusters 4 --seed 971 --nodes 3 4 5 6 7 8 --ntasks-per-node 8
+
+./submit-exp.py --datapath /var/scratch/dbuurman/kmeans \
+    --variant own_inc_loc --size 26 --clusters 4 --seed 971 --nodes 1 --ntasks-per-node 2 4 8
+./submit-exp.py --datapath /var/scratch/dbuurman/kmeans \
+    --variant own_inc_loc --size 26 --clusters 4 --seed 971 --nodes 2 --ntasks-per-node 6 8
+./submit-exp.py --datapath /var/scratch/dbuurman/kmeans \
+    --variant own_inc_loc --size 26 --clusters 4 --seed 971 --nodes 3 4 5 6 7 8 --ntasks-per-node 8
+
+### Experiment 3: The calculation time of the k-Means implementations for different dimensions.
+
+# Dataset:
+ - size = 26
+ - dimension = [2-16]
+
+ ./datasets.py create --datapath /var/scratch/accountname/kmeans \
+    --size 26 --dimension 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
+
+# Jobs:
+./submit-exp.py --datapath /var/scratch/accountname/kmeans \
+    --variant own --repeat 5 --size 26 --clusters 4 --seed 971 --dimension 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
+
+./submit-exp.py --datapath /var/scratch/accountname/kmeans \
+    --variant own_inc --repeat 5 --size 26 --clusters 4 --seed 971 --dimension 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
+
+./submit-exp.py --datapath /var/scratch/accountname/kmeans \
+    --variant own_loc --repeat 5 --size 26 --clusters 4 --seed 971 --dimension 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
+
+./submit-exp.py --datapath /var/scratch/accountname/kmeans \
+    --variant own_inc_loc --repeat 5 --size 26 --clusters 4 --seed 971 --dimension 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
+
+### Experiment 4: The calculation time of the k-Means implementations for different k.
+
+# Dataset:
+ - size = 26
+ - clusters = [2-16]
+
+./submit-exp.py --datapath /var/scratch/accountname/kmeans \
+    --variant own --repeat 5 --size 26 --seed 971 --clusters 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
+
+./submit-exp.py --datapath /var/scratch/accountname/kmeans \
+    --variant own_inc --repeat 5 --size 26 --seed 971 --clusters 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
+
+./submit-exp.py --datapath /var/scratch/accountname/kmeans \
+    --variant own_loc --repeat 5 --size 26 --seed 971 --clusters 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
+
+./submit-exp.py --datapath /var/scratch/accountname/kmeans \
+    --variant own_inc_loc --repeat 5 --size 26 --seed 971 --clusters 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
