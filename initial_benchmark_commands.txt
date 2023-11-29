@@ -48,7 +48,7 @@ mkdir /var/scratch/dbuurman/kmeans
 # Dataset:
  - size = [20,21,22,23,24,25,26,27,28]
 
-./datasets.py create --datapath /var/scratch/accountname/kmeans \
+./datasets.py create --datapath /var/scratch/dbuurman/kmeans \
     --size 20 21 22 23 24 25 26 27 28
 
 # Jobs:
@@ -79,7 +79,7 @@ mkdir /var/scratch/dbuurman/kmeans
 # Dataset:
  - size = 26
 
-./datasets.py create --datapath /var/scratch/accountname/kmeans \
+./datasets.py create --datapath /var/scratch/dbuurman/kmeans \
     --size 26
 
 # Jobs:
@@ -117,20 +117,20 @@ mkdir /var/scratch/dbuurman/kmeans
  - size = 26
  - dimension = [2-16]
 
- ./datasets.py create --datapath /var/scratch/accountname/kmeans \
+ ./datasets.py create --datapath /var/scratch/dbuurman/kmeans \
     --size 26 --dimension 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
 
 # Jobs:
-./submit-exp.py --datapath /var/scratch/accountname/kmeans \
+./submit-exp.py --datapath /var/scratch/dbuurman/kmeans \
     --variant own --repeat 5 --size 26 --clusters 4 --seed 971 --dimension 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
 
-./submit-exp.py --datapath /var/scratch/accountname/kmeans \
+./submit-exp.py --datapath /var/scratch/dbuurman/kmeans \
     --variant own_inc --repeat 5 --size 26 --clusters 4 --seed 971 --dimension 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
 
-./submit-exp.py --datapath /var/scratch/accountname/kmeans \
+./submit-exp.py --datapath /var/scratch/dbuurman/kmeans \
     --variant own_loc --repeat 5 --size 26 --clusters 4 --seed 971 --dimension 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
 
-./submit-exp.py --datapath /var/scratch/accountname/kmeans \
+./submit-exp.py --datapath /var/scratch/dbuurman/kmeans \
     --variant own_inc_loc --repeat 5 --size 26 --clusters 4 --seed 971 --dimension 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
 
 ### Experiment 4: The calculation time of the k-Means implementations for different k.
@@ -139,14 +139,14 @@ mkdir /var/scratch/dbuurman/kmeans
  - size = 26
  - clusters = [2-16]
 
-./submit-exp.py --datapath /var/scratch/accountname/kmeans \
+./submit-exp.py --datapath /var/scratch/dbuurman/kmeans \
     --variant own --repeat 5 --size 26 --seed 971 --clusters 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
 
-./submit-exp.py --datapath /var/scratch/accountname/kmeans \
+./submit-exp.py --datapath /var/scratch/dbuurman/kmeans \
     --variant own_inc --repeat 5 --size 26 --seed 971 --clusters 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
 
-./submit-exp.py --datapath /var/scratch/accountname/kmeans \
+./submit-exp.py --datapath /var/scratch/dbuurman/kmeans \
     --variant own_loc --repeat 5 --size 26 --seed 971 --clusters 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
 
-./submit-exp.py --datapath /var/scratch/accountname/kmeans \
+./submit-exp.py --datapath /var/scratch/dbuurman/kmeans \
     --variant own_inc_loc --repeat 5 --size 26 --seed 971 --clusters 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
