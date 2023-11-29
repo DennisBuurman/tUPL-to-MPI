@@ -61,6 +61,7 @@ mkdir /var/scratch/dbuurman/kmeans
 ./submit-exp.py --datapath /var/scratch/dbuurman/kmeans \
     --variant own_inc_loc --size 20 21 22 23 24 25 26 27 28 --clusters 4 --seed 971
 
+***********************************************************************************************************************************************
 
 ### Experiment 2: The calculation time of the k-Means implementations for varying numbers of threads.
 # thread numbers: [$nodes,$ntasks-per-node]: 
@@ -111,6 +112,8 @@ mkdir /var/scratch/dbuurman/kmeans
 ./submit-exp.py --datapath /var/scratch/dbuurman/kmeans \
     --variant own_inc_loc --size 26 --clusters 4 --seed 971 --nodes 3 4 5 6 7 8 --ntasks-per-node 8
 
+***********************************************************************************************************************************************
+
 ### Experiment 3: The calculation time of the k-Means implementations for different dimensions.
 
 # Dataset:
@@ -132,6 +135,8 @@ mkdir /var/scratch/dbuurman/kmeans
 
 ./submit-exp.py --datapath /var/scratch/dbuurman/kmeans \
     --variant own_inc_loc --repeat 5 --size 26 --clusters 4 --seed 971 --dimension 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
+
+***********************************************************************************************************************************************
 
 ### Experiment 4: The calculation time of the k-Means implementations for different k.
 
