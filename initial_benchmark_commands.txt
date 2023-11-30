@@ -81,7 +81,7 @@ mkdir /var/scratch/dbuurman/kmeans
  - size = 26
 
 ./datasets.py create --datapath /var/scratch/dbuurman/kmeans \
-    --size 26
+    --size 26 --clusters 4 --dimension 4 --seed 971
 
 # Jobs:
 ./submit-exp.py --datapath /var/scratch/dbuurman/kmeans \

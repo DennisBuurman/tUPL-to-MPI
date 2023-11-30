@@ -1,0 +1,481 @@
+[2/64] Running on node101
+[3/64] Running on node101
+[4/64] Running on node101
+DESC: dir=/var/scratch/dbuurman/kmeans/size_26/clusters_4/dimension_4/seed_971 numMeans=4 convergenceDelta=0.0001 thresholdMultiplier=0
+[1/64] Running on node101
+[5/64] Running on node101
+[7/64] Running on node101
+[6/64] Running on node101
+[8/64] Running on node101
+[39/64] Running on node118
+[33/64] Running on node118
+[35/64] Running on node118
+[36/64] Running on node118
+[17/64] Running on node116
+[37/64] Running on node118
+[38/64] Running on node118
+[19/64] Running on node116
+[40/64] Running on node118
+[13/64] Running on node102
+[34/64] Running on node118
+[22/64] Running on node116
+[23/64] Running on node116
+[50/64] Running on node120
+[10/64] Running on node102
+[11/64] Running on node102
+[24/64] Running on node116
+[20/64] Running on node116
+[12/64] Running on node102
+[21/64] Running on node116
+[14/64] Running on node102
+[59/64] Running on node121
+[18/64] Running on node116
+[15/64] Running on node102
+[57/64] Running on node121
+[49/64] Running on node120
+[16/64] Running on node102
+[51/64] Running on node120
+[43/64] Running on node119
+[9/64] Running on node102
+[58/64] Running on node121
+[52/64] Running on node120
+[44/64] Running on node119
+[63/64] Running on node121
+[25/64] Running on node117
+[53/64] Running on node120
+[62/64] Running on node121
+[26/64] Running on node117
+[54/64] Running on node120
+[45/64] Running on node119
+[60/64] Running on node121
+[27/64] Running on node117
+[55/64] Running on node120
+[47/64] Running on node119
+[61/64] Running on node121
+[29/64] Running on node117
+[56/64] Running on node120
+[41/64] Running on node119
+[64/64] Running on node121
+[31/64] Running on node117
+[42/64] Running on node119
+[32/64] Running on node117
+[46/64] Running on node119
+[28/64] Running on node117
+[48/64] Running on node119
+[30/64] Running on node117
+
+Reading file: /var/scratch/dbuurman/kmeans/size_26/clusters_4/dimension_4/seed_971/data.txt
+EXP: readTime 45.8605 seconds
+Detected 67108864 data points of dimension 4.
+
+
+EXP 1: using seed 353b0a1e
+Stopping iterations due to convergence delta.
+EXP 1: [1/64] calculationTime 0.482957 seconds
+EXP 1: iterations 8
+EXP 1: [4/64] calculationTime 0.482937 seconds
+EXP 1: [2/64] calculationTime 0.482941 seconds
+EXP 1: [3/64] calculationTime 0.482931 seconds
+EXP 1: [8/64] calculationTime 0.482939 seconds
+EXP 1: [7/64] calculationTime 0.482928 seconds
+EXP 1: [5/64] calculationTime 0.482935 seconds
+EXP 1: [6/64] calculationTime 0.482939 seconds
+EXP 1: [60/64] calculationTime 0.482937 seconds
+EXP 1: [63/64] calculationTime 0.482934 seconds
+EXP 1: [58/64] calculationTime 0.482938 seconds
+EXP 1: [24/64] calculationTime 0.482933 seconds
+EXP 1: [61/64] calculationTime 0.48294 seconds
+EXP 1: [20/64] calculationTime 0.482936 seconds
+EXP 1: [31/64] calculationTime 0.482935 seconds
+EXP 1: [52/64] calculationTime 0.482934 seconds
+EXP 1: [42/64] calculationTime 0.48294 seconds
+EXP 1: [34/64] calculationTime 0.48294 seconds
+EXP 1: [64/64] calculationTime 0.482937 seconds
+EXP 1: [19/64] calculationTime 0.48294 seconds
+EXP 1: [30/64] calculationTime 0.482934 seconds
+EXP 1: [53/64] calculationTime 0.482936 seconds
+EXP 1: [45/64] calculationTime 0.482942 seconds
+EXP 1: [39/64] calculationTime 0.482929 seconds
+EXP 1: [9/64] calculationTime 0.482942 seconds
+EXP 1: [25/64] calculationTime 0.482939 seconds
+EXP 1: [54/64] calculationTime 0.482934 seconds
+EXP 1: [46/64] calculationTime 0.482939 seconds
+EXP 1: [40/64] calculationTime 0.482937 seconds
+EXP 1: [16/64] calculationTime 0.482938 seconds
+EXP 1: [59/64] calculationTime 0.482936 seconds
+EXP 1: [22/64] calculationTime 0.482934 seconds
+EXP 1: [57/64] calculationTime 0.48294 seconds
+EXP 1: [23/64] calculationTime 0.48294 seconds
+EXP 1: [26/64] calculationTime 0.482938 seconds
+EXP 1: [55/64] calculationTime 0.482936 seconds
+EXP 1: [48/64] calculationTime 0.482937 seconds
+EXP 1: [33/64] calculationTime 0.482934 seconds
+EXP 1: [13/64] calculationTime 0.482942 seconds
+EXP 1: [62/64] calculationTime 0.482935 seconds
+EXP 1: [18/64] calculationTime 0.482935 seconds
+EXP 1: [32/64] calculationTime 0.482937 seconds
+EXP 1: [56/64] calculationTime 0.482933 seconds
+EXP 1: [47/64] calculationTime 0.482939 seconds
+EXP 1: [35/64] calculationTime 0.482931 seconds
+EXP 1: [10/64] calculationTime 0.482942 seconds
+EXP 1: writeTime 0.000862 seconds
+EXP 2: using seed 4d6fd8cc
+EXP 1: [21/64] calculationTime 0.482938 seconds
+EXP 1: [27/64] calculationTime 0.482936 seconds
+EXP 1: [50/64] calculationTime 0.482932 seconds
+EXP 1: [41/64] calculationTime 0.48294 seconds
+EXP 1: [36/64] calculationTime 0.482936 seconds
+EXP 1: [11/64] calculationTime 0.482942 seconds
+EXP 1: [17/64] calculationTime 0.48294 seconds
+EXP 1: [28/64] calculationTime 0.482938 seconds
+EXP 1: [49/64] calculationTime 0.482938 seconds
+EXP 1: [43/64] calculationTime 0.482941 seconds
+EXP 1: [37/64] calculationTime 0.482936 seconds
+EXP 1: [12/64] calculationTime 0.482943 seconds
+EXP 1: [29/64] calculationTime 0.482939 seconds
+EXP 1: [51/64] calculationTime 0.482937 seconds
+EXP 1: [44/64] calculationTime 0.482941 seconds
+EXP 1: [38/64] calculationTime 0.482939 seconds
+EXP 1: [14/64] calculationTime 0.482939 seconds
+EXP 1: [15/64] calculationTime 0.48294 seconds
+Stopping iterations due to convergence delta.
+EXP 2: [1/64] calculationTime 1.58958 seconds
+EXP 2: iterations 42
+EXP 2: [6/64] calculationTime 1.58956 seconds
+EXP 2: [4/64] calculationTime 1.58956 seconds
+EXP 2: [2/64] calculationTime 1.58956 seconds
+EXP 2: [3/64] calculationTime 1.58956 seconds
+EXP 2: [8/64] calculationTime 1.58956 seconds
+EXP 2: [7/64] calculationTime 1.58956 seconds
+EXP 2: [5/64] calculationTime 1.58956 seconds
+EXP 2: [38/64] calculationTime 1.58956 seconds
+EXP 2: [60/64] calculationTime 1.58957 seconds
+EXP 2: [52/64] calculationTime 1.58956 seconds
+EXP 2: [14/64] calculationTime 1.58957 seconds
+EXP 2: [63/64] calculationTime 1.58957 seconds
+EXP 2: [21/64] calculationTime 1.58956 seconds
+EXP 2: [26/64] calculationTime 1.58957 seconds
+EXP 2: [53/64] calculationTime 1.58956 seconds
+EXP 2: [48/64] calculationTime 1.58956 seconds
+EXP 2: [34/64] calculationTime 1.58956 seconds
+EXP 2: [15/64] calculationTime 1.58957 seconds
+EXP 2: [58/64] calculationTime 1.58957 seconds
+EXP 2: [23/64] calculationTime 1.58956 seconds
+EXP 2: [32/64] calculationTime 1.58956 seconds
+EXP 2: [54/64] calculationTime 1.58956 seconds
+EXP 2: [47/64] calculationTime 1.58957 seconds
+EXP 2: [39/64] calculationTime 1.58956 seconds
+EXP 2: [9/64] calculationTime 1.58957 seconds
+EXP 2: [62/64] calculationTime 1.58957 seconds
+EXP 2: [24/64] calculationTime 1.58956 seconds
+EXP 2: [27/64] calculationTime 1.58957 seconds
+EXP 2: [51/64] calculationTime 1.58956 seconds
+EXP 2: [41/64] calculationTime 1.58957 seconds
+EXP 2: [40/64] calculationTime 1.58956 seconds
+EXP 2: [16/64] calculationTime 1.58956 seconds
+EXP 2: [64/64] calculationTime 1.58957 seconds
+EXP 2: [20/64] calculationTime 1.58956 seconds
+EXP 2: [28/64] calculationTime 1.58957 seconds
+EXP 2: [56/64] calculationTime 1.58956 seconds
+EXP 2: [43/64] calculationTime 1.58957 seconds
+EXP 2: [33/64] calculationTime 1.58956 seconds
+EXP 2: [13/64] calculationTime 1.58957 seconds
+EXP 2: writeTime 0.000799 seconds
+EXP 3: using seed 9c3411d2
+EXP 2: [59/64] calculationTime 1.58957 seconds
+EXP 2: [19/64] calculationTime 1.58956 seconds
+EXP 2: [31/64] calculationTime 1.58957 seconds
+EXP 2: [50/64] calculationTime 1.58956 seconds
+EXP 2: [46/64] calculationTime 1.58957 seconds
+EXP 2: [35/64] calculationTime 1.58956 seconds
+EXP 2: [10/64] calculationTime 1.58957 seconds
+EXP 2: [11/64] calculationTime 1.58957 seconds
+EXP 2: [57/64] calculationTime 1.58957 seconds
+EXP 2: [22/64] calculationTime 1.58956 seconds
+EXP 2: [29/64] calculationTime 1.58956 seconds
+EXP 2: [49/64] calculationTime 1.58956 seconds
+EXP 2: [42/64] calculationTime 1.58956 seconds
+EXP 2: [36/64] calculationTime 1.58956 seconds
+EXP 2: [61/64] calculationTime 1.58957 seconds
+EXP 2: [17/64] calculationTime 1.58956 seconds
+EXP 2: [30/64] calculationTime 1.58957 seconds
+EXP 2: [55/64] calculationTime 1.58957 seconds
+EXP 2: [45/64] calculationTime 1.58957 seconds
+EXP 2: [37/64] calculationTime 1.58956 seconds
+EXP 2: [12/64] calculationTime 1.58957 seconds
+EXP 2: [18/64] calculationTime 1.58956 seconds
+EXP 2: [25/64] calculationTime 1.58957 seconds
+EXP 2: [44/64] calculationTime 1.58957 seconds
+Stopping iterations due to convergence delta.
+EXP 3: [1/64] calculationTime 0.350077 seconds
+EXP 3: iterations 8
+EXP 3: [5/64] calculationTime 0.350051 seconds
+EXP 3: [6/64] calculationTime 0.350043 seconds
+EXP 3: [4/64] calculationTime 0.350043 seconds
+EXP 3: [2/64] calculationTime 0.350051 seconds
+EXP 3: [3/64] calculationTime 0.350053 seconds
+EXP 3: [8/64] calculationTime 0.350053 seconds
+EXP 3: [7/64] calculationTime 0.350053 seconds
+EXP 3: [64/64] calculationTime 0.350062 seconds
+EXP 3: [59/64] calculationTime 0.350058 seconds
+EXP 3: [56/64] calculationTime 0.350058 seconds
+EXP 3: [44/64] calculationTime 0.350058 seconds
+EXP 3: [57/64] calculationTime 0.350053 seconds
+EXP 3: [17/64] calculationTime 0.350053 seconds
+EXP 3: [32/64] calculationTime 0.350059 seconds
+EXP 3: [45/64] calculationTime 0.35004 seconds
+EXP 3: [33/64] calculationTime 0.350053 seconds
+EXP 3: [58/64] calculationTime 0.350061 seconds
+EXP 3: [22/64] calculationTime 0.350046 seconds
+EXP 3: [27/64] calculationTime 0.350054 seconds
+EXP 3: [50/64] calculationTime 0.350048 seconds
+EXP 3: [48/64] calculationTime 0.350044 seconds
+EXP 3: [35/64] calculationTime 0.350055 seconds
+EXP 3: [16/64] calculationTime 0.350041 seconds
+EXP 3: [60/64] calculationTime 0.350061 seconds
+EXP 3: [21/64] calculationTime 0.350054 seconds
+EXP 3: [28/64] calculationTime 0.350059 seconds
+EXP 3: [49/64] calculationTime 0.350054 seconds
+EXP 3: [47/64] calculationTime 0.35004 seconds
+EXP 3: [36/64] calculationTime 0.350045 seconds
+EXP 3: [13/64] calculationTime 0.350037 seconds
+EXP 3: [63/64] calculationTime 0.350055 seconds
+EXP 3: [23/64] calculationTime 0.350057 seconds
+EXP 3: [25/64] calculationTime 0.350053 seconds
+EXP 3: [54/64] calculationTime 0.350048 seconds
+EXP 3: [41/64] calculationTime 0.350039 seconds
+EXP 3: [37/64] calculationTime 0.350053 seconds
+EXP 3: [10/64] calculationTime 0.350056 seconds
+EXP 3: writeTime 0.000673 seconds
+EXP 4: using seed 9c6ce680
+EXP 3: [61/64] calculationTime 0.350056 seconds
+EXP 3: [24/64] calculationTime 0.350056 seconds
+EXP 3: [29/64] calculationTime 0.350053 seconds
+EXP 3: [52/64] calculationTime 0.350057 seconds
+EXP 3: [43/64] calculationTime 0.35004 seconds
+EXP 3: [38/64] calculationTime 0.350045 seconds
+EXP 3: [11/64] calculationTime 0.350038 seconds
+EXP 3: [62/64] calculationTime 0.350062 seconds
+EXP 3: [20/64] calculationTime 0.350055 seconds
+EXP 3: [30/64] calculationTime 0.350059 seconds
+EXP 3: [53/64] calculationTime 0.350056 seconds
+EXP 3: [46/64] calculationTime 0.350043 seconds
+EXP 3: [34/64] calculationTime 0.350053 seconds
+EXP 3: [14/64] calculationTime 0.350041 seconds
+EXP 3: [19/64] calculationTime 0.350057 seconds
+EXP 3: [31/64] calculationTime 0.350055 seconds
+EXP 3: [55/64] calculationTime 0.350057 seconds
+EXP 3: [42/64] calculationTime 0.350059 seconds
+EXP 3: [39/64] calculationTime 0.350055 seconds
+EXP 3: [12/64] calculationTime 0.350056 seconds
+EXP 3: [18/64] calculationTime 0.350045 seconds
+EXP 3: [26/64] calculationTime 0.350059 seconds
+EXP 3: [51/64] calculationTime 0.350057 seconds
+EXP 3: [40/64] calculationTime 0.350055 seconds
+EXP 3: [15/64] calculationTime 0.350038 seconds
+EXP 3: [9/64] calculationTime 0.350037 seconds
+EXP 4: [2/64] calculationTime 0.426359 seconds
+EXP 4: [3/64] calculationTime 0.426367 seconds
+EXP 4: [8/64] calculationTime 0.426352 seconds
+Stopping iterations due to convergence delta.
+EXP 4: [1/64] calculationTime 0.426392 seconds
+EXP 4: iterations 10
+EXP 4: [7/64] calculationTime 0.426367 seconds
+EXP 4: [5/64] calculationTime 0.426366 seconds
+EXP 4: [6/64] calculationTime 0.426368 seconds
+EXP 4: [4/64] calculationTime 0.426359 seconds
+EXP 4: [64/64] calculationTime 0.426377 seconds
+EXP 4: [59/64] calculationTime 0.426374 seconds
+EXP 4: [39/64] calculationTime 0.42637 seconds
+EXP 4: [57/64] calculationTime 0.426374 seconds
+EXP 4: [29/64] calculationTime 0.426371 seconds
+EXP 4: [56/64] calculationTime 0.426364 seconds
+EXP 4: [13/64] calculationTime 0.426368 seconds
+EXP 4: [58/64] calculationTime 0.426376 seconds
+EXP 4: [20/64] calculationTime 0.426361 seconds
+EXP 4: [30/64] calculationTime 0.426373 seconds
+EXP 4: [50/64] calculationTime 0.426374 seconds
+EXP 4: [45/64] calculationTime 0.426371 seconds
+EXP 4: [36/64] calculationTime 0.426362 seconds
+EXP 4: [10/64] calculationTime 0.42637 seconds
+EXP 4: [60/64] calculationTime 0.426376 seconds
+EXP 4: [18/64] calculationTime 0.42637 seconds
+EXP 4: [31/64] calculationTime 0.426369 seconds
+EXP 4: [49/64] calculationTime 0.426371 seconds
+EXP 4: [48/64] calculationTime 0.426372 seconds
+EXP 4: [33/64] calculationTime 0.426369 seconds
+EXP 4: [11/64] calculationTime 0.42637 seconds
+EXP 4: [62/64] calculationTime 0.426376 seconds
+EXP 4: [19/64] calculationTime 0.426369 seconds
+EXP 4: [28/64] calculationTime 0.426373 seconds
+EXP 4: [54/64] calculationTime 0.426374 seconds
+EXP 4: [47/64] calculationTime 0.426368 seconds
+EXP 4: [35/64] calculationTime 0.42637 seconds
+EXP 4: [9/64] calculationTime 0.426369 seconds
+EXP 4: [61/64] calculationTime 0.426373 seconds
+EXP 4: [17/64] calculationTime 0.426368 seconds
+EXP 4: [32/64] calculationTime 0.426374 seconds
+EXP 4: [52/64] calculationTime 0.426365 seconds
+EXP 4: [41/64] calculationTime 0.426371 seconds
+EXP 4: [40/64] calculationTime 0.426361 seconds
+EXP 4: [12/64] calculationTime 0.426359 seconds
+EXP 4: writeTime 0.000766 seconds
+EXP 5: using seed 455123d0
+EXP 4: [63/64] calculationTime 0.426371 seconds
+EXP 4: [22/64] calculationTime 0.42637 seconds
+EXP 4: [27/64] calculationTime 0.426372 seconds
+EXP 4: [51/64] calculationTime 0.426372 seconds
+EXP 4: [43/64] calculationTime 0.426372 seconds
+EXP 4: [37/64] calculationTime 0.426368 seconds
+EXP 4: [15/64] calculationTime 0.426367 seconds
+EXP 4: [21/64] calculationTime 0.426369 seconds
+EXP 4: [26/64] calculationTime 0.426373 seconds
+EXP 4: [55/64] calculationTime 0.426372 seconds
+EXP 4: [46/64] calculationTime 0.426372 seconds
+EXP 4: [38/64] calculationTime 0.426371 seconds
+EXP 4: [14/64] calculationTime 0.426371 seconds
+EXP 4: [23/64] calculationTime 0.426369 seconds
+EXP 4: [25/64] calculationTime 0.426371 seconds
+EXP 4: [53/64] calculationTime 0.426371 seconds
+EXP 4: [42/64] calculationTime 0.426373 seconds
+EXP 4: [34/64] calculationTime 0.426362 seconds
+EXP 4: [16/64] calculationTime 0.42637 seconds
+EXP 4: [24/64] calculationTime 0.426362 seconds
+EXP 4: [44/64] calculationTime 0.426361 seconds
+EXP 5: [4/64] calculationTime 0.37772 seconds
+EXP 5: [7/64] calculationTime 0.37772 seconds
+EXP 5: [5/64] calculationTime 0.377719 seconds
+EXP 5: [6/64] calculationTime 0.37772 seconds
+EXP 5: [8/64] calculationTime 0.377721 seconds
+EXP 5: [2/64] calculationTime 0.37772 seconds
+EXP 5: [3/64] calculationTime 0.377719 seconds
+Stopping iterations due to convergence delta.
+EXP 5: [1/64] calculationTime 0.377737 seconds
+EXP 5: iterations 8
+EXP 5: [60/64] calculationTime 0.377721 seconds
+EXP 5: [64/64] calculationTime 0.377721 seconds
+EXP 5: [21/64] calculationTime 0.377721 seconds
+EXP 5: [31/64] calculationTime 0.377722 seconds
+EXP 5: [55/64] calculationTime 0.377718 seconds
+EXP 5: [43/64] calculationTime 0.37772 seconds
+EXP 5: [34/64] calculationTime 0.377721 seconds
+EXP 5: [9/64] calculationTime 0.377719 seconds
+EXP 5: [59/64] calculationTime 0.377717 seconds
+EXP 5: [23/64] calculationTime 0.377722 seconds
+EXP 5: [28/64] calculationTime 0.377723 seconds
+EXP 5: [52/64] calculationTime 0.377721 seconds
+EXP 5: [44/64] calculationTime 0.37772 seconds
+EXP 5: [40/64] calculationTime 0.377721 seconds
+EXP 5: [12/64] calculationTime 0.377718 seconds
+EXP: [3/64] fullTime 50.4491 seconds
+EXP 5: [57/64] calculationTime 0.377717 seconds
+EXP 5: [20/64] calculationTime 0.377724 seconds
+EXP 5: [32/64] calculationTime 0.377724 seconds
+EXP 5: [56/64] calculationTime 0.377721 seconds
+EXP 5: [42/64] calculationTime 0.37771 seconds
+EXP 5: [37/64] calculationTime 0.37772 seconds
+EXP 5: [15/64] calculationTime 0.37772 seconds
+EXP: [7/64] fullTime 50.449 seconds
+EXP: [5/64] fullTime 50.4491 seconds
+EXP: [6/64] fullTime 50.4491 seconds
+EXP: [8/64] fullTime 50.449 seconds
+EXP: [2/64] fullTime 50.4493 seconds
+EXP: [4/64] fullTime 50.4493 seconds
+EXP 5: [58/64] calculationTime 0.37771 seconds
+EXP 5: [24/64] calculationTime 0.377723 seconds
+EXP 5: [25/64] calculationTime 0.377721 seconds
+EXP 5: [50/64] calculationTime 0.37772 seconds
+EXP 5: [46/64] calculationTime 0.37772 seconds
+EXP 5: [38/64] calculationTime 0.377721 seconds
+EXP 5: [14/64] calculationTime 0.377718 seconds
+EXP 5: writeTime 0.001045 seconds
+EXP 5: [63/64] calculationTime 0.377718 seconds
+EXP 5: [18/64] calculationTime 0.377724 seconds
+EXP 5: [26/64] calculationTime 0.377711 seconds
+EXP 5: [49/64] calculationTime 0.377715 seconds
+EXP 5: [45/64] calculationTime 0.37772 seconds
+EXP 5: [35/64] calculationTime 0.377719 seconds
+EXP 5: [11/64] calculationTime 0.377719 seconds
+EXP 5: [62/64] calculationTime 0.377721 seconds
+EXP 5: [19/64] calculationTime 0.377722 seconds
+EXP 5: [27/64] calculationTime 0.377721 seconds
+EXP 5: [54/64] calculationTime 0.377721 seconds
+EXP 5: [48/64] calculationTime 0.37772 seconds
+EXP 5: [39/64] calculationTime 0.37772 seconds
+EXP 5: [13/64] calculationTime 0.377719 seconds
+EXP: [1/64] fullTime 50.4499 seconds
+EXP 5: [61/64] calculationTime 0.377716 seconds
+EXP 5: [17/64] calculationTime 0.377719 seconds
+EXP 5: [29/64] calculationTime 0.37772 seconds
+EXP 5: [53/64] calculationTime 0.377719 seconds
+EXP 5: [47/64] calculationTime 0.377719 seconds
+EXP 5: [36/64] calculationTime 0.377721 seconds
+EXP 5: [10/64] calculationTime 0.377708 seconds
+EXP: [62/64] fullTime 50.4479 seconds
+EXP 5: [30/64] calculationTime 0.377722 seconds
+EXP 5: [51/64] calculationTime 0.377719 seconds
+EXP 5: [41/64] calculationTime 0.37772 seconds
+EXP 5: [33/64] calculationTime 0.377714 seconds
+EXP 5: [16/64] calculationTime 0.377719 seconds
+EXP: [58/64] fullTime 50.448 seconds
+EXP: [32/64] fullTime 50.4479 seconds
+EXP: [54/64] fullTime 50.4481 seconds
+EXP: [42/64] fullTime 50.4481 seconds
+EXP: [39/64] fullTime 50.4488 seconds
+EXP: [10/64] fullTime 50.4485 seconds
+EXP: [60/64] fullTime 50.4477 seconds
+EXP 5: [22/64] calculationTime 0.377723 seconds
+EXP: [31/64] fullTime 50.4479 seconds
+EXP: [52/64] fullTime 50.4481 seconds
+EXP: [46/64] fullTime 50.448 seconds
+EXP: [36/64] fullTime 50.4487 seconds
+EXP: [12/64] fullTime 50.4484 seconds
+EXP: [64/64] fullTime 50.4477 seconds
+EXP: [23/64] fullTime 50.4485 seconds
+EXP: [28/64] fullTime 50.4478 seconds
+EXP: [56/64] fullTime 50.4482 seconds
+EXP: [45/64] fullTime 50.4481 seconds
+EXP: [59/64] fullTime 50.448 seconds
+EXP: [19/64] fullTime 50.4485 seconds
+EXP: [30/64] fullTime 50.4478 seconds
+EXP: [50/64] fullTime 50.4482 seconds
+EXP: [48/64] fullTime 50.448 seconds
+EXP: [57/64] fullTime 50.448 seconds
+EXP: [17/64] fullTime 50.4485 seconds
+EXP: [25/64] fullTime 50.4479 seconds
+EXP: [51/64] fullTime 50.4482 seconds
+EXP: [47/64] fullTime 50.4481 seconds
+EXP: [34/64] fullTime 50.4485 seconds
+EXP: [15/64] fullTime 50.4484 seconds
+EXP: [63/64] fullTime 50.4479 seconds
+EXP: [21/64] fullTime 50.4484 seconds
+EXP: [26/64] fullTime 50.4479 seconds
+EXP: [55/64] fullTime 50.4482 seconds
+EXP: [43/64] fullTime 50.4481 seconds
+EXP: [40/64] fullTime 50.4485 seconds
+EXP: [14/64] fullTime 50.4483 seconds
+EXP: [61/64] fullTime 50.4478 seconds
+EXP: [24/64] fullTime 50.4486 seconds
+EXP: [27/64] fullTime 50.4479 seconds
+EXP: [49/64] fullTime 50.4482 seconds
+EXP: [41/64] fullTime 50.4481 seconds
+EXP: [37/64] fullTime 50.4486 seconds
+EXP: [13/64] fullTime 50.4485 seconds
+EXP: [44/64] fullTime 50.4481 seconds
+EXP: [38/64] fullTime 50.4487 seconds
+EXP: [16/64] fullTime 50.4483 seconds
+EXP: [18/64] fullTime 50.4486 seconds
+EXP: [29/64] fullTime 50.4479 seconds
+EXP: [53/64] fullTime 50.4482 seconds
+EXP: [20/64] fullTime 50.4486 seconds
+EXP: [35/64] fullTime 50.4486 seconds
+EXP: [11/64] fullTime 50.4485 seconds
+EXP: [22/64] fullTime 50.4486 seconds
+EXP: [33/64] fullTime 50.4488 seconds
+EXP: [9/64] fullTime 50.4484 seconds
+
+OK 1: result matches reference
+OK 2: result matches reference
+OK 3: result matches reference
+OK 4: result matches reference
+OK 5: result matches reference

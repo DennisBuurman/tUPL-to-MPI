@@ -1,0 +1,61 @@
+DESC: dir=/var/scratch/dbuurman/kmeans/size_26/clusters_4/dimension_4/seed_971 numMeans=4 convergenceDelta=0.0001 thresholdMultiplier=0
+[1/4] Running on node124
+[2/4] Running on node124
+[3/4] Running on node124
+[4/4] Running on node124
+
+Reading file: /var/scratch/dbuurman/kmeans/size_26/clusters_4/dimension_4/seed_971/data.txt
+EXP: readTime 41.4301 seconds
+Detected 67108864 data points of dimension 4.
+
+
+EXP 1: using seed 2566ce23
+EXP 1: [3/4] calculationTime 21.6575 seconds
+Stopping iterations due to convergence delta.
+EXP 1: [1/4] calculationTime 21.6576 seconds
+EXP 1: iterations 50
+EXP 1: [4/4] calculationTime 21.6575 seconds
+EXP 1: [2/4] calculationTime 21.6575 seconds
+EXP 1: writeTime 0.0012 seconds
+EXP 2: using seed 3a13fd17
+EXP 2: [2/4] calculationTime 13.1623 seconds
+EXP 2: [4/4] calculationTime 13.1623 seconds
+EXP 2: [3/4] calculationTime 13.1623 seconds
+Stopping iterations due to convergence delta.
+EXP 2: [1/4] calculationTime 13.1623 seconds
+EXP 2: iterations 29
+EXP 2: writeTime 0.000975 seconds
+EXP 3: using seed ea33fdae
+EXP 3: [3/4] calculationTime 13.9671 seconds
+EXP 3: [2/4] calculationTime 13.9671 seconds
+EXP 3: [4/4] calculationTime 13.9671 seconds
+Stopping iterations due to convergence delta.
+EXP 3: [1/4] calculationTime 13.9671 seconds
+EXP 3: iterations 30
+EXP 3: writeTime 0.000799 seconds
+EXP 4: using seed 604d6c0a
+EXP 4: [4/4] calculationTime 4.20831 seconds
+EXP 4: [3/4] calculationTime 4.20831 seconds
+EXP 4: [2/4] calculationTime 4.20831 seconds
+Stopping iterations due to convergence delta.
+EXP 4: [1/4] calculationTime 4.20833 seconds
+EXP 4: iterations 7
+EXP 4: writeTime 0.000938 seconds
+EXP 5: using seed b50d5cbd
+Stopping iterations due to convergence delta.
+EXP 5: [1/4] calculationTime 11.8059 seconds
+EXP 5: iterations 25
+EXP 5: [2/4] calculationTime 11.8059 seconds
+EXP 5: [4/4] calculationTime 11.8059 seconds
+EXP 5: [3/4] calculationTime 11.8059 seconds
+EXP: [3/4] fullTime 107.257 seconds
+EXP: [2/4] fullTime 107.257 seconds
+EXP: [4/4] fullTime 107.257 seconds
+EXP 5: writeTime 0.002286 seconds
+EXP: [1/4] fullTime 107.259 seconds
+
+OK 1: result matches reference
+OK 2: result matches reference
+OK 3: result matches reference
+OK 4: result matches reference
+OK 5: result matches reference
