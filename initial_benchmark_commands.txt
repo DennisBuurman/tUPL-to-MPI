@@ -115,13 +115,14 @@ mkdir /var/scratch/dbuurman/kmeans
 ***********************************************************************************************************************************************
 
 ### Experiment 3: The calculation time of the k-Means implementations for different dimensions.
+# The runs with dimensions other than 4 
 
 # Dataset:
  - size = 26
  - dimension = [2-16]
 
  ./datasets.py create --datapath /var/scratch/dbuurman/kmeans \
-    --size 26 --dimension 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
+    --size 26 --clusters 4 --dimension 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 --seed 971
 
 # Jobs:
 ./submit-exp.py --datapath /var/scratch/dbuurman/kmeans \
@@ -144,6 +145,10 @@ mkdir /var/scratch/dbuurman/kmeans
  - size = 26
  - clusters = [2-16]
 
+./datasets.py create --datapath /var/scratch/dbuurman/kmeans \
+    --size 26 --clusters 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 --dimension 4 --seed 971
+
+# Jobs:
 ./submit-exp.py --datapath /var/scratch/dbuurman/kmeans \
     --variant own --repeat 5 --size 26 --seed 971 --clusters 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
 
