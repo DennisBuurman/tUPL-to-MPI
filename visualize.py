@@ -15,7 +15,7 @@ import numpy as np
 from typing import Dict, Tuple, List
 
 filename = "EX{experiment_number}-{cluster}-RESULTS.txt"
-path = "tupl-kmeans-39f1073/support/exp-{experiment_number}-{cluster}/"
+path = "initial_benchmarks/{cluster}/EX{experiment_number}/{date}/"
 
 # Column headers of results file entries 
 headers = ["Implementation", "Input Size", "Clusters", "Dimension", "Nodes", "Tasks Per Node", "Worst Calc. Time", "Worst Exec. Time", "Iterations"]
@@ -90,7 +90,7 @@ def create_plot_exp1(sizes: List[int], times: Dict[str, float], name="") -> None
         multiplier += 1
     
     ax.set_ylabel("Y")
-    ax.set_title("Input size variation")
+    ax.set_title(f"Input size variation: {name}")
     ax.set_xticks(x + width, sizes)
     ax.legend(loc="upper left", ncols=1)
     # ax.set_ylim(0, 3)
@@ -102,11 +102,12 @@ def create_plot_exp1(sizes: List[int], times: Dict[str, float], name="") -> None
 def exp1() -> None:
     # DAS-5 only
     cluster = "DAS5"
-    file = path.format(experiment_number=1, cluster=cluster) + filename.format(experiment_number=1, cluster="DAS5")
+    date = "30-11-2023"
+    file = path.format(experiment_number=1, cluster=cluster, date=date) + filename.format(experiment_number=1, cluster="DAS5")
     df = pd.read_csv(file, delim_whitespace=True, names=headers)
     data = process_data_exp1(df)
     sizes, times = serialize_exp1(data)
-    create_plot_exp1(sizes, times, name=cluster)
+    create_plot_exp1(sizes, times, name=f"{cluster} ({date})")
     
 
     # DAS-6 only
