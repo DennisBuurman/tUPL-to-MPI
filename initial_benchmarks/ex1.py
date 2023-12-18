@@ -18,7 +18,7 @@ from typing import Dict, Tuple, List
 
 filename = "EX1-{cluster}-RESULTS.txt"
 path = "{cluster}/EX1/{date}/"
-date = "14-12-2023" # DD-MM-YYYY
+date = "18-12-2023" # DD-MM-YYYY
 cluster = "DAS5" # DAS5 || DAS6
 
 # Column headers of results file entries 
@@ -147,7 +147,7 @@ def create_boxplots(data: Dict) -> None:
             times = data[implementation][size]
             box_plot_data.append(times)
             labels.append(size)
-        ax.set_title(f"{names[implementation]} {cluster} exp. 1 runtime distribution ({date})")
+        ax.set_title(f"{names[implementation]} {cluster} exp. 1 runtime distribution {size} ({date})")
         ax.set_ylabel("Calculation time (s)")
         ax.set_xlabel("Input size (2^x)")
         ax.boxplot(box_plot_data, patch_artist=True, labels=labels)
@@ -181,7 +181,7 @@ def create_confidence_interval(data: Dict) -> None:
         mean_values, ci_values = ci_list(times)
         
         ax.set_title(f"{names[implementation]} {cluster} 95% CI on size {size} ({date})")
-        ax.set_ylabel("Calculation time (s)")
+        ax.set_ylabel("Mean calculation time (s)")
         ax.set_xlabel("Iteration")
         ax.plot(x, mean_values)
         ax.fill_between(x, np.subtract(mean_values, ci_values), np.add(mean_values, ci_values), color='b', alpha=.1)
