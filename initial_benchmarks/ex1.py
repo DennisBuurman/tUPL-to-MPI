@@ -17,7 +17,7 @@ import statistics
 from typing import Dict, Tuple, List
 
 filename = "EX1-{cluster}-RESULTS.txt"
-path = "{cluster}/EX1/{date}/"
+path = "{cluster}/EX1/{date}/own_inc_loc_200_repeats/"
 date = "18-12-2023" # DD-MM-YYYY
 cluster = "DAS5" # DAS5 || DAS6
 
