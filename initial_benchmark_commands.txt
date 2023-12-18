@@ -54,13 +54,13 @@ mkdir /var/scratch/dbuurman/kmeans
 # Jobs and results:
 mkdir exp-1-DAS5
 ./submit-exp.py --datapath /var/scratch/dbuurman/kmeans \
-    --variant own --size 20 21 22 23 24 25 26 27 28 --clusters 4 --seed 971 --repeat 30
+    --variant own --size 20 21 22 23 24 25 26 27 28 --clusters 4 --seed 971 --repeat 100
 ./submit-exp.py --datapath /var/scratch/dbuurman/kmeans \
-    --variant own_inc --size 20 21 22 23 24 25 26 27 28 --clusters 4 --seed 971 --repeat 30
+    --variant own_inc --size 20 21 22 23 24 25 26 27 28 --clusters 4 --seed 971 --repeat 100
 ./submit-exp.py --datapath /var/scratch/dbuurman/kmeans \
-    --variant own_loc --size 20 21 22 23 24 25 26 27 28 --clusters 4 --seed 971 --repeat 30
+    --variant own_loc --size 20 21 22 23 24 25 26 27 28 --clusters 4 --seed 971 --repeat 100
 ./submit-exp.py --datapath /var/scratch/dbuurman/kmeans \
-    --variant own_inc_loc --size 20 21 22 23 24 25 26 27 28 --clusters 4 --seed 971 --repeat 30
+    --variant own_inc_loc --size 20 21 22 23 24 25 26 27 28 --clusters 4 --seed 971 --repeat 100
 
 # Process
 ./process-results.py exp-1-DAS5/ > exp-1-DAS5/EX1-DAS5-RESULTS.txt
