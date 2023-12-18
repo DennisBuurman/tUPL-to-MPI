@@ -2,7 +2,8 @@
 
 # 
 # Script to visualize results produced by process-results.py.
-# Creates a graph for each experiment.
+# Created to produce graphs for input size variation experiment;
+# Also denoted as experiment 1.
 # 
 # Author: Dennis Buurman, Leiden University
 
@@ -11,11 +12,14 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from pandas import DataFrame
 import numpy as np
+import statistics
 
 from typing import Dict, Tuple, List
 
-filename = "EX{experiment_number}-{cluster}-RESULTS.txt"
-path = "initial_benchmarks/{cluster}/EX{experiment_number}/{date}/"
+filename = "EX1-{cluster}-RESULTS.txt"
+path = "{cluster}/EX1/{date}/"
+date = "14-12-2023" # DD-MM-YYYY
+cluster = "DAS5" # DAS5 || DAS6
 
 # Column headers of results file entries 
 headers = ["Implementation", "Input Size", "Clusters", "Dimension", "Nodes", "Tasks Per Node", "Worst Calc. Time", "Worst Exec. Time", "Iterations"]
@@ -28,7 +32,9 @@ names = {
     "own_inc_loc": "Implementation 4"
 }
 
-def process_data_exp1(df: DataFrame) -> Dict:
+def process(df: DataFrame) -> Dict:
+    """ Processes data from a result file into a dictionary.
+        Preps data for general graph. """
     d: Dict = {}
     df.reset_index()
 
@@ -56,11 +62,12 @@ def process_data_exp1(df: DataFrame) -> Dict:
         implementations: Dict = d[size]
         for i in implementations:
            times: List[float] = implementations[i]
-           implementations[i]: float = sum(times) / len(times)
+           implementations[i]: float = np.mean(times)
     
     return d
 
-def serialize_exp1(data: Dict) -> Tuple[List, Dict]:
+def serialize(data: Dict) -> Tuple[List, Dict]:
+    """ Serializes the data for matplotlib barplot input. """
     sizes: List[int] = []
     times: Dict = {}
 
@@ -76,7 +83,8 @@ def serialize_exp1(data: Dict) -> Tuple[List, Dict]:
 
     return sizes, times
 
-def create_plot_exp1(sizes: List[int], times: Dict[str, float], name="") -> None:
+def create_plot(sizes: List[int], times: Dict[str, float], name="") -> None:
+    """ Creates the default plot for experiment 1: input size variation. """
     x = np.arange(len(sizes))
     width = 0.2 # bar width
     multiplier = 0
@@ -96,15 +104,19 @@ def create_plot_exp1(sizes: List[int], times: Dict[str, float], name="") -> None
     ax.legend(loc="upper left", ncols=1)
     # ax.set_ylim(0, 3)
 
-    plt.savefig(f"experiment_1_{name}.png")
+    plt.savefig(path.format(cluster=cluster, date=date)+f"exp_1_{name}.png")
     plt.close(fig)
     # plt.show()
 
-def process_data_exp1_reverse(df: DataFrame) -> Dict:
+def process_reverse(df: DataFrame) -> Dict:
+    """ Processes data from a result file into a dictionary.
+        Preps data for boxplot graphs. 
+        Reverses implementation and input size compared to process().
+        Removes the average time, as all results are needed for the boxplots. """
     d: Dict = {}
     df.reset_index()
 
-    # Sort data on input size, implementation, worst calc. time
+    # Sort data on implementation, input size, worst calc. time
     for index, row in df.iterrows():
         implementation: str = row["Implementation"]
         input_size: str = row["Input Size"]
@@ -125,7 +137,8 @@ def process_data_exp1_reverse(df: DataFrame) -> Dict:
     
     return d
 
-def exp1_boxplots(data: Dict, date: str, cluster: str) -> None:
+def create_boxplots(data: Dict) -> None:
+    """ Creates boxplots for each implementation to visualize performance variability. """
     for implementation in data:
         fig, ax = plt.subplots(layout="constrained")
         box_plot_data = []
@@ -138,49 +151,64 @@ def exp1_boxplots(data: Dict, date: str, cluster: str) -> None:
         ax.set_ylabel("Calculation time (s)")
         ax.set_xlabel("Input size (2^x)")
         ax.boxplot(box_plot_data, patch_artist=True, labels=labels)
-        plt.savefig(f"exp_1_bp_{implementation}_{cluster} ({date})")
+        plt.savefig(path.format(cluster=cluster, date=date)+f"exp_1_bp_{implementation}_{cluster} ({date})")
         plt.close(fig)
+
+def calc_ci(values, z=1.96) -> Tuple[float, float]:
+    """ Calculates the 95% CI for given input. """
+    mean = np.mean(values)
+    stdev = np.std(values)
+    ci = z * stdev / np.sqrt(len(values))
+    return mean, ci
+
+def ci_list(values) -> Tuple[List[float], List[float]]:
+    """ Returns a list of 95% CI values. """
+    mean_list = []
+    ci_list = []
+    for i in range(len(values)):
+        mean, ci = calc_ci(values[0:i+1])
+        mean_list.append(mean)
+        ci_list.append(ci)
+    return mean_list, ci_list
+
+def create_confidence_interval(data: Dict) -> None:
+    """ Creates a 95% CI plot over the runs of each implementation. """
+    size: int = 28 # denotes size to create CI over
+    for implementation in data:
+        fig, ax = plt.subplots(layout="constrained")
+        times: List[float] = data[implementation][size]
+        x = np.arange(1, len(times)+1)
+        mean_values, ci_values = ci_list(times)
         
+        ax.set_title(f"{names[implementation]} {cluster} 95% CI on size {size} ({date})")
+        ax.set_ylabel("Calculation time (s)")
+        ax.set_xlabel("Iteration")
+        ax.plot(x, mean_values)
+        ax.fill_between(x, np.subtract(mean_values, ci_values), np.add(mean_values, ci_values), color='b', alpha=.1)
 
-# Varying input sizes
-def exp1() -> None:
-    # DAS-5 only
-    cluster = "DAS5"
-    date = "30-11-2023"
-    file = path.format(experiment_number=1, cluster=cluster, date=date) + filename.format(experiment_number=1, cluster="DAS5")
-    df = pd.read_csv(file, delim_whitespace=True, names=headers)
-    data = process_data_exp1(df)
-    sizes, times = serialize_exp1(data)
-    create_plot_exp1(sizes, times, name=f"{cluster} ({date})")
-    
-    # DAS-5 box plots
-    data = process_data_exp1_reverse(df)
-    exp1_boxplots(data, date, cluster)
-    
-
-    # DAS-6 only
-    cluster = "DAS6"
-    # TODO: repeat for DAS-6
-
-    # Combined (original DAS-4?)
-    # TODO: normalize DAS-5 and DAS-6 results (maybe add DAS-4 results)
-    # TODO: compare normalized results in one plot
-
-# Varying thread counts
-def exp2() -> None:
-    # TODO
-    pass
-
-# Varying dimensions
-def exp3() -> None:
-    pass
-
-# Varying cluster sizes
-def exp4() -> None:
-    pass
+        plt.savefig(path.format(cluster=cluster, date=date)+f"exp_1_ci_{implementation}_{cluster}_{size} ({date})")
+        plt.close(fig)
 
 def main():
-    exp1()
+    ### DAS-5 only
+    file: str = path.format(cluster=cluster, date=date) + filename.format(experiment_number=1, cluster=cluster)
+    df: DataFrame = pd.read_csv(file, delim_whitespace=True, names=headers)
+    data: Dict = process(df)
+    sizes, times = serialize(data)
+    create_plot(sizes, times, name=f"{cluster} ({date})")
+    
+    # DAS-5 box plots
+    data = process_reverse(df)
+    create_boxplots(data)
+
+    # DAS-5 confidence interval on run times
+    create_confidence_interval(data)
+
+    ### DAS-6 only
+    # TODO: repeat DAS-5
+
+    ### Comparison
+    # TODO: compare relative performance of DAS-5 and DAS-6
 
     return 0
 
