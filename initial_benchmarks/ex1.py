@@ -16,10 +16,11 @@ import statistics
 
 from typing import Dict, Tuple, List
 
-filename = "EX1-{cluster}-RESULTS.txt"
-path = "{cluster}/EX1/{date}/"
 date = "19-12-2023" # DD-MM-YYYY
-cluster = "DAS5" # DAS5 || DAS6
+cluster = "DAS6" # DAS5 || DAS6
+filename = f"EX1-{cluster}-RESULTS.txt"
+path = f"{cluster}/EX1/{date}/"
+
 
 # Column headers of results file entries 
 headers = ["Implementation", "Input Size", "Clusters", "Dimension", "Nodes", "Tasks Per Node", "Worst Calc. Time", "Worst Exec. Time", "Iterations"]
@@ -104,7 +105,7 @@ def create_plot(sizes: List[int], times: Dict[str, float], name="") -> None:
     ax.legend(loc="upper left", ncols=1)
     # ax.set_ylim(0, 3)
 
-    plt.savefig(path.format(cluster=cluster, date=date)+f"exp_1_{name}.png")
+    plt.savefig(path+f"exp_1_{name}.png")
     plt.close(fig)
     # plt.show()
 
@@ -151,7 +152,7 @@ def create_boxplots(data: Dict) -> None:
         ax.set_ylabel("Calculation time (s)")
         ax.set_xlabel("Input size (2^x)")
         ax.boxplot(box_plot_data, patch_artist=True, labels=labels)
-        plt.savefig(path.format(cluster=cluster, date=date)+f"exp_1_bp_{implementation}_{cluster} ({date})")
+        plt.savefig(path+f"exp_1_bp_{implementation}_{cluster} ({date})")
         plt.close(fig)
 
 def calc_ci(values, z=1.96) -> Tuple[float, float]:
@@ -186,12 +187,12 @@ def create_confidence_interval(data: Dict) -> None:
         ax.plot(x, mean_values)
         ax.fill_between(x, np.subtract(mean_values, ci_values), np.add(mean_values, ci_values), color='b', alpha=.1)
 
-        plt.savefig(path.format(cluster=cluster, date=date)+f"exp_1_ci_{implementation}_{cluster}_{size} ({date})")
+        plt.savefig(path+f"exp_1_ci_{implementation}_{cluster}_{size} ({date})")
         plt.close(fig)
 
 def main():
     ### DAS-5 only
-    file: str = path.format(cluster=cluster, date=date) + filename.format(experiment_number=1, cluster=cluster)
+    file: str = path + filename.format(experiment_number=1, cluster=cluster)
     df: DataFrame = pd.read_csv(file, delim_whitespace=True, names=headers)
     data: Dict = process(df)
     sizes, times = serialize(data)
