@@ -25,7 +25,10 @@ job_template = """#!/bin/bash
 $config
 
 . /etc/bashrc
-. /etc/profile.d/modules.sh
+# DAS-5:
+# . /etc/profile.d/modules.sh
+# DAS-6:
+. /etc/profile.d/lmod.sh
 module load openmpi/gcc/64
 
 datadir=$datadir
@@ -35,6 +38,8 @@ APP=${script_path}/../src/$appexec
 ## ./MPI_Kmeans -i input_file -f format -k number_of_means -d convergence_delta -t threshold -s exp_suffix -r numRuns
 ARGS="-i $$datadir -f 1 -k $clusters -d 0.0001 -t 0 -s ${suffix} -r $$numRuns"
 OMPI_OPTS="--mca btl ^usnic,tcp"
+# DAS-6/OpenHPC modules do not set MPI_RUN, so:
+MPI_RUN=mpirun
 
 $$MPI_RUN $$OMPI_OPTS $$APP $$ARGS
 
