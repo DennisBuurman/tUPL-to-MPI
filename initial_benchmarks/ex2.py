@@ -15,11 +15,10 @@ import numpy as np
 
 from typing import Dict, Tuple, List
 
-date = "19-12-2023" # DD-MM-YYYY
+date = "20-12-2023" # DD-MM-YYYY
 cluster = "DAS5" # DAS5 || DAS6
-filename = f"EX1-{cluster}-RESULTS.txt"
-path = f"{cluster}/EX1/{date}/"
-
+filename = f"EX2-{cluster}-RESULTS.txt"
+path = f"{cluster}/EX2/{date}/"
 
 # Column headers of results file entries 
 headers = ["Implementation", "Input Size", "Clusters", "Dimension", "Nodes", "Tasks Per Node", "Worst Calc. Time", "Worst Exec. Time", "Iterations"]
@@ -41,25 +40,25 @@ def process(df: DataFrame) -> Dict:
     # Sort data on input size, implementation, worst calc. time
     for _, row in df.iterrows():
         implementation: str = row["Implementation"]
-        input_size: str = row["Input Size"]
+        thread_count: int = row["Nodes"] * row["Tasks Per Node"]
         time: float = row["Worst Calc. Time"]
         
-        if input_size in d:
-            time_per_implementation: Dict = d[input_size]
+        if thread_count in d:
+            time_per_implementation: Dict = d[thread_count]
             if implementation in time_per_implementation:
                 time_per_implementation[implementation].append(time)
             else:
                 time_per_implementation[implementation] = [time]
         else:
-            d[input_size]: Dict = {
+            d[thread_count]: Dict = {
                 implementation: [
                     time
                 ]
             }
 
     # Get average time per size per implementation
-    for size in d:
-        implementations: Dict = d[size]
+    for thread_count in d:
+        implementations: Dict = d[thread_count]
         for i in implementations:
            times: List[float] = implementations[i]
            implementations[i]: float = np.mean(times)
@@ -68,43 +67,45 @@ def process(df: DataFrame) -> Dict:
 
 def serialize(data: Dict) -> Tuple[List, Dict]:
     """ Serializes the data for matplotlib barplot input. """
-    sizes: List[int] = []
+    thread_count_list: List[int] = []
     times: Dict = {}
 
-    for size in data:
-        sizes.append(size)
-        for implementation in data[size]:
-            t: float = data[size][implementation]
+    for thread_count in data:
+        if thread_count > 500:
+            continue
+        thread_count_list.append(thread_count)
+        for implementation in data[thread_count]:
+            t: float = data[thread_count][implementation]
             n: str = names[implementation] # Anne's naming convention
             if n in times:
                 times[n].append(t)
             else:
                 times[n] = [t]
 
-    return sizes, times
+    return thread_count_list, times
 
-def create_plot(sizes: List[int], times: Dict[str, float], name="") -> None:
-    """ Creates the default plot for experiment 1: input size variation. """
-    x = np.arange(len(sizes))
-    width = 0.2 # bar width
-    multiplier = 0
+def create_plot(thread_count: List[int], times: Dict[str, float], name="") -> None:
+    """ Creates the default plot for experiment 2: thread count variation. """
+    x = np.arange(len(thread_count))
 
     fig, ax = plt.subplots(layout="constrained")
+    markers = "x+*2"
+    count = 0
 
     for implementation, time in times.items():
-        offset = width * multiplier
-        rects = ax.bar(x + offset, time, width, label=implementation)
-        # ax.bar_label(rects, padding=3)
-        multiplier += 1
+        plt.plot(thread_count, time, marker=markers[count], label=implementation)
+        count += 1
     
+    # plt.yscale("log")
+
     ax.set_ylabel("Calculation time (s)")
-    ax.set_xlabel("Input size (2^x)")
-    ax.set_title(f"Input size variation: {name}")
-    ax.set_xticks(x + width, sizes)
-    ax.legend(loc="upper left", ncols=1)
+    ax.set_xlabel("Thread count")
+    ax.set_title(f"Thread count variation: {name}")
+    ax.set_xticks(thread_count)
+    ax.legend(loc="upper right", ncols=1)
     # ax.set_ylim(0, 3)
 
-    plt.savefig(path+f"exp_1_{name}.png")
+    plt.savefig(path+f"exp_2_{name}.png")
     plt.close(fig)
     # plt.show()
 
@@ -119,40 +120,23 @@ def process_reverse(df: DataFrame) -> Dict:
     # Sort data on implementation, input size, worst calc. time
     for index, row in df.iterrows():
         implementation: str = row["Implementation"]
-        input_size: str = row["Input Size"]
+        thread_count: int = row["Nodes"] * row["Tasks Per Node"]
         time: float = row["Worst Calc. Time"]
         
         if implementation in d:
             time_per_size: Dict = d[implementation]
-            if input_size in time_per_size:
-                time_per_size[input_size].append(time)
+            if thread_count in time_per_size:
+                time_per_size[thread_count].append(time)
             else:
-                time_per_size[input_size] = [time]
+                time_per_size[thread_count] = [time]
         else:
             d[implementation]: Dict = {
-                input_size: [
+                thread_count: [
                     time
                 ]
             }
     
     return d
-
-def create_boxplots(data: Dict) -> None:
-    """ Creates boxplots for each implementation to visualize performance variability. """
-    for implementation in data:
-        fig, ax = plt.subplots(layout="constrained")
-        box_plot_data = []
-        labels = []
-        for size in data[implementation]:
-            times = data[implementation][size]
-            box_plot_data.append(times)
-            labels.append(size)
-        ax.set_title(f"{names[implementation]} {cluster} exp. 1 runtime distribution {size} ({date})")
-        ax.set_ylabel("Calculation time (s)")
-        ax.set_xlabel("Input size (2^x)")
-        ax.boxplot(box_plot_data, patch_artist=True, labels=labels)
-        plt.savefig(path+f"exp_1_bp_{implementation}_{cluster} ({date})")
-        plt.close(fig)
 
 def calc_ci(values, z=1.96) -> Tuple[float, float]:
     """ Calculates the 95% CI for given input. """
@@ -173,44 +157,31 @@ def ci_list(values) -> Tuple[List[float], List[float]]:
 
 def create_confidence_interval(data: Dict) -> None:
     """ Creates a 95% CI plot over the runs of each implementation. """
-    size: int = 28 # denotes size to create CI over
+    thread_count: int = 320 # denote thread count to create CI over
     for implementation in data:
         fig, ax = plt.subplots(layout="constrained")
-        times: List[float] = data[implementation][size]
+        times: List[float] = data[implementation][thread_count]
         x = np.arange(1, len(times)+1)
         mean_values, ci_values = ci_list(times)
         
-        ax.set_title(f"{names[implementation]} {cluster} 95% CI on size {size} ({date})")
+        ax.set_title(f"{names[implementation]} {cluster} {thread_count} threads 95% CI ({date})")
         ax.set_ylabel("Mean calculation time (s)")
         ax.set_xlabel("Iteration")
         ax.plot(x, mean_values)
         ax.fill_between(x, np.subtract(mean_values, ci_values), np.add(mean_values, ci_values), color='b', alpha=.1)
 
-        plt.savefig(path+f"exp_1_ci_{implementation}_{cluster}_{size} ({date})")
+        plt.savefig(path+f"exp_2_ci_{implementation}_{cluster}_tc{thread_count} ({date})")
         plt.close(fig)
 
 def main():
-    ### DAS-5 only
     file: str = path + filename.format(experiment_number=1, cluster=cluster)
     df: DataFrame = pd.read_csv(file, delim_whitespace=True, names=headers)
     data: Dict = process(df)
-    sizes, times = serialize(data)
-    create_plot(sizes, times, name=f"{cluster} ({date})")
-    
-    # DAS-5 box plots
+    thread_count, times = serialize(data)
+    create_plot(thread_count, times, name=f"{cluster} ({date})")
+
     data = process_reverse(df)
-    create_boxplots(data)
-
-    # DAS-5 confidence interval on run times
     create_confidence_interval(data)
-
-    ### DAS-6 only
-    # TODO: repeat DAS-5
-
-    ### Comparison
-    # TODO: compare relative performance of DAS-5 and DAS-6
-
-    return 0
 
 if __name__ == "__main__":
     sys.exit(main())
