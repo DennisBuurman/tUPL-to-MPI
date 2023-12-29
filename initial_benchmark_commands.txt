@@ -91,40 +91,13 @@ mkdir exp-1-DAS6
 mkdir exp-2-DAS5
 
 ./submit-exp.py --datapath /var/scratch/dbuurman/kmeans \
-    --variant own --size 26 --clusters 4 --seed 971 --nodes 1 --ntasks-per-node 2 4 --repeat 25
+    --variant own own_inc own_loc own_inc_loc --size 26 --clusters 4 --seed 971 --nodes 1 --ntasks-per-node 2 4 --repeat 10
 ./submit-exp.py --datapath /var/scratch/dbuurman/kmeans \
-    --variant own --size 26 --clusters 4 --seed 971 --nodes 1 --ntasks-per-node 8 12 16 --repeat 50
+    --variant own own_inc own_loc own_inc_loc --size 26 --clusters 4 --seed 971 --nodes 1 --ntasks-per-node 8 12 16 --repeat 10
 ./submit-exp.py --datapath /var/scratch/dbuurman/kmeans \
-    --variant own --size 26 --clusters 4 --seed 971 --nodes 2 --ntasks-per-node 12 16 --repeat 50
+    --variant own own_inc own_loc own_inc_loc --size 26 --clusters 4 --seed 971 --nodes 2 --ntasks-per-node 12 16 --repeat 10
 ./submit-exp.py --datapath /var/scratch/dbuurman/kmeans \
-    --variant own --size 26 --clusters 4 --seed 971 --nodes 3 4 5 6 7 8 12 16 20 24 --ntasks-per-node 16 --repeat 50
-
-./submit-exp.py --datapath /var/scratch/dbuurman/kmeans \
-    --variant own_inc --size 26 --clusters 4 --seed 971 --nodes 1 --ntasks-per-node 2 4 --repeat 25
-./submit-exp.py --datapath /var/scratch/dbuurman/kmeans \
-    --variant own_inc --size 26 --clusters 4 --seed 971 --nodes 1 --ntasks-per-node 8 12 16 --repeat 50
-./submit-exp.py --datapath /var/scratch/dbuurman/kmeans \
-    --variant own_inc --size 26 --clusters 4 --seed 971 --nodes 2 --ntasks-per-node 12 16 --repeat 50
-./submit-exp.py --datapath /var/scratch/dbuurman/kmeans \
-    --variant own_inc --size 26 --clusters 4 --seed 971 --nodes 3 4 5 6 7 8 12 16 20 24 --ntasks-per-node 16 --repeat 50
-
-./submit-exp.py --datapath /var/scratch/dbuurman/kmeans \
-    --variant own_loc --size 26 --clusters 4 --seed 971 --nodes 1 --ntasks-per-node 2 4 --repeat 25
-./submit-exp.py --datapath /var/scratch/dbuurman/kmeans \
-    --variant own_loc --size 26 --clusters 4 --seed 971 --nodes 1 --ntasks-per-node 8 12 16 --repeat 50
-./submit-exp.py --datapath /var/scratch/dbuurman/kmeans \
-    --variant own_loc --size 26 --clusters 4 --seed 971 --nodes 2 --ntasks-per-node 12 16 --repeat 50
-./submit-exp.py --datapath /var/scratch/dbuurman/kmeans \
-    --variant own_loc --size 26 --clusters 4 --seed 971 --nodes 3 4 5 6 7 8 12 16 20 24 --ntasks-per-node 16 --repeat 50
-
-./submit-exp.py --datapath /var/scratch/dbuurman/kmeans \
-    --variant own_inc_loc --size 26 --clusters 4 --seed 971 --nodes 1 --ntasks-per-node 2 4 --repeat 25
-./submit-exp.py --datapath /var/scratch/dbuurman/kmeans \
-    --variant own_inc_loc --size 26 --clusters 4 --seed 971 --nodes 1 --ntasks-per-node 8 12 16 --repeat 50
-./submit-exp.py --datapath /var/scratch/dbuurman/kmeans \
-    --variant own_inc_loc --size 26 --clusters 4 --seed 971 --nodes 2 --ntasks-per-node 12 16 --repeat 50
-./submit-exp.py --datapath /var/scratch/dbuurman/kmeans \
-    --variant own_inc_loc --size 26 --clusters 4 --seed 971 --nodes 3 4 5 6 7 8 12 16 20 24 --ntasks-per-node 16 --repeat 50
+    --variant own own_inc own_loc own_inc_loc --size 26 --clusters 4 --seed 971 --nodes 3 4 5 6 7 8 12 16 20 24 --ntasks-per-node 16 --repeat 10
 
 # Process
 ./process-results.py exp-2-DAS5/ > exp-2-DAS5/EX2-DAS5-RESULTS.txt
