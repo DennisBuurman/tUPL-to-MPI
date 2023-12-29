@@ -40,6 +40,8 @@ void initRandom(const struct Options &options)
     randomIn.read(reinterpret_cast<char *>(&seed), sizeof(seed));
     randomIn.close();
 
+    seed = 340632450;
+
     std::cout << "EXP " << options.currentRun << ": using seed "
         << std::hex << seed << std::dec << std::endl;
   }
