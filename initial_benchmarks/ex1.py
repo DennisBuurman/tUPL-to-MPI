@@ -15,7 +15,7 @@ import numpy as np
 
 from typing import Dict, Tuple, List
 
-date = "19-12-2023" # DD-MM-YYYY
+date = "29-12-2023" # DD-MM-YYYY
 cluster = "DAS5" # DAS5 || DAS6
 filename = f"EX1-{cluster}-RESULTS.txt"
 path = f"{cluster}/EX1/{date}/"
