@@ -15,8 +15,8 @@ import numpy as np
 
 from typing import Dict, Tuple, List
 
-date = "02-01-2024" # DD-MM-YYYY
-cluster = "DAS5" # DAS5 || DAS6
+date = "05-01-2024" # DD-MM-YYYY
+cluster = "DAS6" # DAS5 || DAS6
 filename = f"EX2-{cluster}-RESULTS.txt"
 path = f"{cluster}/EX2/{date}/"
 
@@ -157,7 +157,7 @@ def ci_list(values) -> Tuple[List[float], List[float]]:
 
 def create_confidence_interval(data: Dict) -> None:
     """ Creates a 95% CI plot over the runs of each implementation. """
-    thread_count: int = 320 # denote thread count to create CI over
+    thread_count: int = 96 # denote thread count to create CI over
     for implementation in data:
         fig, ax = plt.subplots(layout="constrained")
         times: List[float] = data[implementation][thread_count]
