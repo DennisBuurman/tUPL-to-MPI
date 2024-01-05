@@ -26,9 +26,9 @@ $config
 
 . /etc/bashrc
 # DAS-5:
-. /etc/profile.d/modules.sh
+# . /etc/profile.d/modules.sh
 # DAS-6:
-# . /etc/profile.d/lmod.sh
+. /etc/profile.d/lmod.sh
 module load openmpi/gcc/64
 
 datadir=$datadir
@@ -39,7 +39,7 @@ APP=${script_path}/../src/$appexec
 ARGS="-i $$datadir -f 1 -k $clusters -d 0.0001 -t 0 -s ${suffix} -r $$numRuns"
 OMPI_OPTS="--mca btl ^usnic,tcp"
 # DAS-6/OpenHPC modules do not set MPI_RUN, so:
-# MPI_RUN=mpirun
+MPI_RUN=mpirun
 
 $$MPI_RUN $$OMPI_OPTS $$APP $$ARGS
 

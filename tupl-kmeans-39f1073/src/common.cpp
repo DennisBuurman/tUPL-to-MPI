@@ -36,9 +36,9 @@ void initRandom(const struct Options &options)
 {
   unsigned int seed;
   if (mpi_rank == 0) {
-    std::ifstream randomIn("/dev/random");
-    randomIn.read(reinterpret_cast<char *>(&seed), sizeof(seed));
-    randomIn.close();
+    // std::ifstream randomIn("/dev/random");
+    // randomIn.read(reinterpret_cast<char *>(&seed), sizeof(seed));
+    // randomIn.close();
 
     seed = 340632450;
 
