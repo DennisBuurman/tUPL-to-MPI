@@ -1,6 +1,21 @@
 ### Quick Start
-
 # AUTOMATED USING run_benchmark.py!!!
+
+# Experiment 1 and 2 respectively
+./run_benchmark.py
+./run_benchmark.py --experiment 2 --size 26 --compute-cluster (DAS5||DAS6)
+
+###
+
+
+
+
+
+
+
+
+
+
 
 # Create a directory to store datasets:
 # Some datasets are available at "/var/scratch/krietvel/kmeans"
