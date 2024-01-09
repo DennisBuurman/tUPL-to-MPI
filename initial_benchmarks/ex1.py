@@ -8,18 +8,18 @@
 # Author: Dennis Buurman, Leiden University
 
 import sys
+from pathlib import Path
 import matplotlib.pyplot as plt
 import pandas as pd
 from pandas import DataFrame
 import numpy as np
+from argparse import ArgumentParser
+from datetime import datetime
 
 from typing import Dict, Tuple, List
 
-date = "05-01-2024" # DD-MM-YYYY
-cluster = "DAS6" # DAS5 || DAS6
-filename = f"EX1-{cluster}-RESULTS.txt"
-path = f"{cluster}/EX1/{date}/"
-
+# Date string
+date = datetime.today().strftime("%d-%m-%Y")
 
 # Column headers of results file entries 
 headers = ["Implementation", "Input Size", "Clusters", "Dimension", "Nodes", "Tasks Per Node", "Worst Calc. Time", "Worst Exec. Time", "Iterations"]
@@ -83,8 +83,10 @@ def serialize(data: Dict) -> Tuple[List, Dict]:
 
     return sizes, times
 
-def create_plot(sizes: List[int], times: Dict[str, float], name="") -> None:
+def create_plot(sizes: List[int], times: Dict[str, float], options) -> None:
     """ Creates the default plot for experiment 1: input size variation. """
+    name = options["compute-cluster"] + "_" + date
+
     x = np.arange(len(sizes))
     width = 0.2 # bar width
     multiplier = 0
@@ -104,7 +106,7 @@ def create_plot(sizes: List[int], times: Dict[str, float], name="") -> None:
     ax.legend(loc="upper left", ncols=1)
     # ax.set_ylim(0, 3)
 
-    plt.savefig(path+f"exp_1_{name}.png")
+    plt.savefig(f"exp_1_{name}.png")
     plt.close(fig)
     # plt.show()
 
@@ -137,8 +139,10 @@ def process_reverse(df: DataFrame) -> Dict:
     
     return d
 
-def create_boxplots(data: Dict) -> None:
+def create_boxplots(data: Dict, options) -> None:
     """ Creates boxplots for each implementation to visualize performance variability. """
+    cluster = options["compute-cluster"]
+
     for implementation in data:
         fig, ax = plt.subplots(layout="constrained")
         box_plot_data = []
@@ -151,7 +155,7 @@ def create_boxplots(data: Dict) -> None:
         ax.set_ylabel("Calculation time (s)")
         ax.set_xlabel("Input size (2^x)")
         ax.boxplot(box_plot_data, patch_artist=True, labels=labels)
-        plt.savefig(path+f"exp_1_bp_{implementation}_{cluster} ({date})")
+        plt.savefig(f"exp_1_bp_{implementation}_{cluster}_{date}")
         plt.close(fig)
 
 def calc_ci(values, z=1.96) -> Tuple[float, float]:
@@ -171,8 +175,10 @@ def ci_list(values) -> Tuple[List[float], List[float]]:
         ci_list.append(ci)
     return mean_list, ci_list
 
-def create_confidence_interval(data: Dict) -> None:
+def create_confidence_interval(data: Dict, options) -> None:
     """ Creates a 95% CI plot over the runs of each implementation. """
+    cluster = options["compute-cluster"]
+
     size: int = 28 # denotes size to create CI over
     for implementation in data:
         fig, ax = plt.subplots(layout="constrained")
@@ -186,29 +192,41 @@ def create_confidence_interval(data: Dict) -> None:
         ax.plot(x, mean_values)
         ax.fill_between(x, np.subtract(mean_values, ci_values), np.add(mean_values, ci_values), color='b', alpha=.1)
 
-        plt.savefig(path+f"exp_1_ci_{implementation}_{cluster}_{size} ({date})")
+        plt.savefig(f"exp_1_ci_{implementation}_{cluster}_{size}_{date}")
         plt.close(fig)
 
 def main():
-    ### DAS-5 only
-    file: str = path + filename.format(experiment_number=1, cluster=cluster)
+    # Argument parsing
+    parser = ArgumentParser()
+    parser.add_argument("--compute-cluster", dest="compute-cluster", type=str, default="DAS5",
+                            help="Compute cluster of the results")
+    parser.add_argument("--file-preamble", dest="file-preamble", type=str, default="EX1-DAS5-RESULTS-",
+                            help="Preamble of results file")
+    parser.add_argument("--file-date", dest="file-date", type=str, default=date,
+                            help="Date of the results file")
+    parser.add_argument("--file-extension", dest="file-extension", type=str, default=".txt",
+                            help="File extension of results file")
+    parser.add_argument("--datadir", dest="datadir", type=str, default="",
+                            help="Directory of the results file; include '/' at the end if non-empty")
+    args = parser.parse_args()
+    options = dict(vars(args))
+
+    # Preprocessing
+    file: str = options["datadir"] + options["file-preamble"] + options["file-date"] + options["file-extension"]
+    if not Path(file).is_file():
+        print(f"Error: {file} is not a file.", file=sys.stderr)
+        return 1
     df: DataFrame = pd.read_csv(file, delim_whitespace=True, names=headers)
     data: Dict = process(df)
     sizes, times = serialize(data)
-    create_plot(sizes, times, name=f"{cluster} ({date})")
-    
-    # DAS-5 box plots
+
+    # Main plot
+    create_plot(sizes, times, options)
+    # Box plots
     data = process_reverse(df)
-    create_boxplots(data)
-
-    # DAS-5 confidence interval on run times
-    create_confidence_interval(data)
-
-    ### DAS-6 only
-    # TODO: repeat DAS-5
-
-    ### Comparison
-    # TODO: compare relative performance of DAS-5 and DAS-6
+    create_boxplots(data, options)
+    # Confidence intervals
+    create_confidence_interval(data, options)
 
     return 0
 
