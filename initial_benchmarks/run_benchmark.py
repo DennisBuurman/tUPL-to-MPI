@@ -70,13 +70,15 @@ def experiment_1(options) -> int:
         print(f"Error: {scriptpath} is not a file.", file=sys.stderr)
         return 1
     command = f"./{scriptpath} --datapath {datapath} --variant {variant} --size {size} \
-        --cluster {clusters} --dimension {dimension} --seed {seed} --nodes {nodes} --ntasks-per-node {tasks} --repeats {repeat}"
+        --clusters {clusters} --dimension {dimension} --seed {seed} --nodes {nodes} --ntasks-per-node {tasks} --repeat {repeat}"
     print(f"--> Executing: {command}")
     subprocess.run(command.split())
 
     print("> Processing experiment 1 results ...")
 
     # Process results
+    if not Path(output_dir).is_dir():
+        Path(output_dir).mkdir(parents=True)
     result_file = open(f"{output_dir}/EX1-{compute_cluster}-RESULTS-{date}.txt", "w")
     scriptpath = supportdir + "process-results.py"
     file = Path(scriptpath)
@@ -146,7 +148,7 @@ def experiment_2(options) -> int:
         for t in tup[1]:
             thread_count += str(t) + " "
         command = f"./{scriptpath} --datapath {datapath} --variant {variant} --size {size} \
-                    --cluster {clusters} --dimension {dimension} --seed {seed} --nodes {node_count} --ntasks-per-node {thread_count} --repeats {repeat}"
+                    --clusters {clusters} --dimension {dimension} --seed {seed} --nodes {node_count} --ntasks-per-node {thread_count} --repeat {repeat}"
         print(f"--> Executing: {command}")
         subprocess.run(command.split())
 
@@ -154,6 +156,8 @@ def experiment_2(options) -> int:
     print("> Processing experiment 2 results ...")
 
     # Process results
+    if not Path(output_dir).is_dir():
+        Path(output_dir).mkdir(parents=True)
     result_file = open(f"{output_dir}/EX2-{compute_cluster}-RESULTS-{date}.txt", "w")
     scriptpath = supportdir + "process-results.py"
     file = Path(scriptpath)
