@@ -1,5 +1,7 @@
 ### Quick Start
 
+# AUTOMATED USING run_benchmark.py!!!
+
 # Create a directory to store datasets:
 # Some datasets are available at "/var/scratch/krietvel/kmeans"
 

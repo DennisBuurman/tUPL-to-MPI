@@ -8,17 +8,18 @@
 # Author: Dennis Buurman, Leiden University
 
 import sys
+from pathlib import Path
 import matplotlib.pyplot as plt
 import pandas as pd
 from pandas import DataFrame
 import numpy as np
+from argparse import ArgumentParser
+from datetime import datetime
 
 from typing import Dict, Tuple, List
 
-date = "05-01-2024" # DD-MM-YYYY
-cluster = "DAS6" # DAS5 || DAS6
-filename = f"EX2-{cluster}-RESULTS.txt"
-path = f"{cluster}/EX2/{date}/"
+# Date string
+date = datetime.today().strftime("%d-%m-%Y")
 
 # Column headers of results file entries 
 headers = ["Implementation", "Input Size", "Clusters", "Dimension", "Nodes", "Tasks Per Node", "Worst Calc. Time", "Worst Exec. Time", "Iterations"]
@@ -84,8 +85,11 @@ def serialize(data: Dict) -> Tuple[List, Dict]:
 
     return thread_count_list, times
 
-def create_plot(thread_count: List[int], times: Dict[str, float], name="") -> None:
+def create_plot(thread_count: List[int], times: Dict[str, float], options) -> None:
     """ Creates the default plot for experiment 2: thread count variation. """
+    name = options["compute-cluster"] + "_" + date
+    datapath = options["datapath"]
+    
     x = np.arange(len(thread_count))
 
     fig, ax = plt.subplots(layout="constrained")
@@ -105,7 +109,7 @@ def create_plot(thread_count: List[int], times: Dict[str, float], name="") -> No
     ax.legend(loc="upper right", ncols=1)
     # ax.set_ylim(0, 3)
 
-    plt.savefig(path+f"exp_2_{name}.png")
+    plt.savefig(f"{datapath}/exp_2_{name}.png")
     plt.close(fig)
     # plt.show()
 
@@ -155,8 +159,11 @@ def ci_list(values) -> Tuple[List[float], List[float]]:
         ci_list.append(ci)
     return mean_list, ci_list
 
-def create_confidence_interval(data: Dict) -> None:
+def create_confidence_interval(data: Dict, options) -> None:
     """ Creates a 95% CI plot over the runs of each implementation. """
+    cluster = options["compute-cluster"]
+    datapath = options["datapath"]
+    
     thread_count: int = 96 # denote thread count to create CI over
     for implementation in data:
         fig, ax = plt.subplots(layout="constrained")
@@ -170,18 +177,41 @@ def create_confidence_interval(data: Dict) -> None:
         ax.plot(x, mean_values)
         ax.fill_between(x, np.subtract(mean_values, ci_values), np.add(mean_values, ci_values), color='b', alpha=.1)
 
-        plt.savefig(path+f"exp_2_ci_{implementation}_{cluster}_tc{thread_count} ({date})")
+        plt.savefig(f"{datapath}/exp_2_ci_{implementation}_{cluster}_tc{thread_count}_{date}")
         plt.close(fig)
 
 def main():
-    file: str = path + filename.format(experiment_number=1, cluster=cluster)
+    # Argument parsing
+    parser = ArgumentParser()
+    parser.add_argument("--datapath", dest="datapath", type=str, default="results",
+                            help="Location of the results file to process")
+    parser.add_argument("--compute-cluster", dest="compute-cluster", type=str, default="DAS5",
+                            help="Compute cluster of the results")
+    parser.add_argument("--file-preamble", dest="file-preamble", type=str, default="EX2-DAS5-RESULTS-",
+                            help="Preamble of results file")
+    parser.add_argument("--file-date", dest="file-date", type=str, default=date,
+                            help="Date of the results file")
+    parser.add_argument("--file-extension", dest="file-extension", type=str, default=".txt",
+                            help="File extension of results file")
+    parser.add_argument("--datadir", dest="datadir", type=str, default="",
+                            help="Directory of the results file; include '/' at the end if non-empty")
+    args = parser.parse_args()
+    options = dict(vars(args))
+
+    # Preprocessing
+    file: str = options["datapath"] + "/" + options["datadir"] + options["file-preamble"] + options["file-date"] + options["file-extension"]
+    if not Path(file).is_file():
+        print(f"Error: {file} is not a file.", file=sys.stderr)
+        return 1
     df: DataFrame = pd.read_csv(file, delim_whitespace=True, names=headers)
     data: Dict = process(df)
     thread_count, times = serialize(data)
-    create_plot(thread_count, times, name=f"{cluster} ({date})")
 
+    # Main plot
+    create_plot(thread_count, times, options)
+    # Confidence interval
     data = process_reverse(df)
-    create_confidence_interval(data)
+    create_confidence_interval(data, options)
 
 if __name__ == "__main__":
     sys.exit(main())

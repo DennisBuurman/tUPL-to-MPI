@@ -86,6 +86,7 @@ def serialize(data: Dict) -> Tuple[List, Dict]:
 def create_plot(sizes: List[int], times: Dict[str, float], options) -> None:
     """ Creates the default plot for experiment 1: input size variation. """
     name = options["compute-cluster"] + "_" + date
+    datapath = options["datapath"]
 
     x = np.arange(len(sizes))
     width = 0.2 # bar width
@@ -106,7 +107,7 @@ def create_plot(sizes: List[int], times: Dict[str, float], options) -> None:
     ax.legend(loc="upper left", ncols=1)
     # ax.set_ylim(0, 3)
 
-    plt.savefig(f"exp_1_{name}.png")
+    plt.savefig(f"{datapath}/exp_1_{name}.png")
     plt.close(fig)
     # plt.show()
 
@@ -142,6 +143,7 @@ def process_reverse(df: DataFrame) -> Dict:
 def create_boxplots(data: Dict, options) -> None:
     """ Creates boxplots for each implementation to visualize performance variability. """
     cluster = options["compute-cluster"]
+    datapath = options["datapath"]
 
     for implementation in data:
         fig, ax = plt.subplots(layout="constrained")
@@ -155,7 +157,7 @@ def create_boxplots(data: Dict, options) -> None:
         ax.set_ylabel("Calculation time (s)")
         ax.set_xlabel("Input size (2^x)")
         ax.boxplot(box_plot_data, patch_artist=True, labels=labels)
-        plt.savefig(f"exp_1_bp_{implementation}_{cluster}_{date}")
+        plt.savefig(f"{datapath}/exp_1_bp_{implementation}_{cluster}_{date}")
         plt.close(fig)
 
 def calc_ci(values, z=1.96) -> Tuple[float, float]:
@@ -178,6 +180,7 @@ def ci_list(values) -> Tuple[List[float], List[float]]:
 def create_confidence_interval(data: Dict, options) -> None:
     """ Creates a 95% CI plot over the runs of each implementation. """
     cluster = options["compute-cluster"]
+    datapath = options["datapath"]
 
     size: int = 28 # denotes size to create CI over
     for implementation in data:
@@ -192,12 +195,14 @@ def create_confidence_interval(data: Dict, options) -> None:
         ax.plot(x, mean_values)
         ax.fill_between(x, np.subtract(mean_values, ci_values), np.add(mean_values, ci_values), color='b', alpha=.1)
 
-        plt.savefig(f"exp_1_ci_{implementation}_{cluster}_{size}_{date}")
+        plt.savefig(f"{datapath}/exp_1_ci_{implementation}_{cluster}_{size}_{date}")
         plt.close(fig)
 
 def main():
     # Argument parsing
     parser = ArgumentParser()
+    parser.add_argument("--datapath", dest="datapath", type=str, default="results",
+                            help="Location of the results file to process")
     parser.add_argument("--compute-cluster", dest="compute-cluster", type=str, default="DAS5",
                             help="Compute cluster of the results")
     parser.add_argument("--file-preamble", dest="file-preamble", type=str, default="EX1-DAS5-RESULTS-",
@@ -212,7 +217,7 @@ def main():
     options = dict(vars(args))
 
     # Preprocessing
-    file: str = options["datadir"] + options["file-preamble"] + options["file-date"] + options["file-extension"]
+    file: str = options["datapath"] + "/" + options["datadir"] + options["file-preamble"] + options["file-date"] + options["file-extension"]
     if not Path(file).is_file():
         print(f"Error: {file} is not a file.", file=sys.stderr)
         return 1
