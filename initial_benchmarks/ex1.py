@@ -217,6 +217,7 @@ def main():
     options = dict(vars(args))
 
     # Preprocessing
+    Path(options["datapath"]).mkdir(parents=True)
     file: str = options["datapath"] + "/" + options["datadir"] + options["file-preamble"] + options["file-date"] + options["file-extension"]
     if not Path(file).is_file():
         print(f"Error: {file} is not a file.", file=sys.stderr)

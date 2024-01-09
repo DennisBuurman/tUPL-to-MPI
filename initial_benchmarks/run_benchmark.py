@@ -59,6 +59,7 @@ def experiment_1(options) -> int:
     seed = options["seed"]
     nodes = options["nodes"]
     tasks = options["ntasks-per-node"]
+    repeats = options["repeats"]
 
     print("> Running experiment 1 ...")
 
@@ -69,7 +70,7 @@ def experiment_1(options) -> int:
         print(f"Error: {scriptpath} is not a file.", file=sys.stderr)
         return 1
     command = f"./{scriptpath} --datapath {datapath} --variant {variant} --size {size} \
-        --cluster {clusters} --dimension {dimension} --seed {seed} --nodes {nodes} --ntasks-per-node {tasks}"
+        --cluster {clusters} --dimension {dimension} --seed {seed} --nodes {nodes} --ntasks-per-node {tasks} --repeats {repeats}"
     print(f"--> Executing: {command}")
     subprocess.run(command.split())
 
@@ -115,6 +116,7 @@ def experiment_2(options) -> int:
     seed = options["seed"]
     nodes = options["nodes"]
     tasks = options["ntasks-per-node"]
+    repeats = options["repeats"]
 
     print("> Running experiment 2 ...")
 
@@ -144,7 +146,7 @@ def experiment_2(options) -> int:
         for t in tup[1]:
             thread_count += str(t) + " "
         command = f"./{scriptpath} --datapath {datapath} --variant {variant} --size {size} \
-                    --cluster {clusters} --dimension {dimension} --seed {seed} --nodes {node_count} --ntasks-per-node {thread_count}"
+                    --cluster {clusters} --dimension {dimension} --seed {seed} --nodes {node_count} --ntasks-per-node {thread_count} --repeats {repeats}"
         print(f"--> Executing: {command}")
         subprocess.run(command.split())
 
