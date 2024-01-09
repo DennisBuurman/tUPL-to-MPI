@@ -13,6 +13,7 @@ import sys
 from argparse import ArgumentParser
 import subprocess
 from datetime import datetime
+import time
 
 from typing import Dict
 
@@ -73,6 +74,11 @@ def experiment_1(options) -> int:
         --clusters {clusters} --dimension {dimension} --seed {seed} --nodes {nodes} --ntasks-per-node {tasks} --repeat {repeat}"
     print(f"--> Executing: {command}")
     subprocess.run(command.split())
+
+    # Wait for jobs to finish
+    now = datetime.now().strftime("%H:%M:%S")
+    print("Sleeping for 15 minutes starting at: {now}")
+    time.sleep(15*60)
 
     print("> Processing experiment 1 results ...")
 
@@ -152,6 +158,11 @@ def experiment_2(options) -> int:
         print(f"--> Executing: {command}")
         subprocess.run(command.split())
 
+
+    # Wait for jobs to finish
+    now = datetime.now().strftime("%H:%M:%S")
+    print("Sleeping for 15 minutes starting at: {now}")
+    time.sleep(15*60)
 
     print("> Processing experiment 2 results ...")
 
