@@ -122,7 +122,7 @@ def run_experiment(config, options, ex_num):
         pbar.update(new - current)
     pbar.close()
         
-    # s_sleep = 300 # ~180s read time and 10*6s calc. time for size 28
+    s_sleep = 300 # ~180s read time and 10*6s calc. time for size 28
     for i in tqdm(range(0, s_sleep), total = s_sleep, desc ="Waiting for jobs to finish"):
         time.sleep(1)
 
