@@ -147,6 +147,14 @@ def run_experiment(config, options, ex_num):
 
     return 0
 
+def validate_results():
+    # TODO
+    pass
+
+def report_results():
+    # TODO
+    pass
+
 def main():
     parser = ArgumentParser()
     parser.add_argument("--compute-cluster", "-c", dest="compute-cluster", type=str, required=True, choices=["DAS5", "DAS6"],
@@ -159,6 +167,8 @@ def main():
                             help="Location of the dataset")
     parser.add_argument("--scriptpath", "-s", dest="scriptpath", type=str, default="../tupl-kmeans-39f1073/support",
                             help="Location to directory of submit-exp.py script")
+    # TODO: only validate and report existing results
+    # TODO: clean *.out files argument
     args = parser.parse_args()
     options = dict(vars(args))
 
