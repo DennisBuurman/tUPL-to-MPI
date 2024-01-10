@@ -92,7 +92,8 @@ def create_plot(sizes: List[int], times: Dict[str, float], options) -> None:
     width = 0.2 # bar width
     multiplier = 0
 
-    fig, ax = plt.subplots(layout="constrained")
+    fig, ax = plt.subplots()
+    fig.tight_layout()
 
     for implementation, time in times.items():
         offset = width * multiplier
@@ -104,7 +105,7 @@ def create_plot(sizes: List[int], times: Dict[str, float], options) -> None:
     ax.set_xlabel("Input size (2^x)")
     ax.set_title(f"Input size variation: {name}")
     ax.set_xticks(x + width, sizes)
-    ax.legend(loc="upper left", ncols=1)
+    ax.legend(loc="upper left", ncol=1)
     # ax.set_ylim(0, 3)
 
     plt.savefig(f"{datapath}/exp_1_{name}.png")
@@ -146,7 +147,8 @@ def create_boxplots(data: Dict, options) -> None:
     datapath = options["datapath"]
 
     for implementation in data:
-        fig, ax = plt.subplots(layout="constrained")
+        fig, ax = plt.subplots()
+        fig.tight_layout()
         box_plot_data = []
         labels = []
         for size in data[implementation]:
@@ -184,7 +186,8 @@ def create_confidence_interval(data: Dict, options) -> None:
 
     size: int = 28 # denotes size to create CI over
     for implementation in data:
-        fig, ax = plt.subplots(layout="constrained")
+        fig, ax = plt.subplots()
+        fig.tight_layout()
         times: List[float] = data[implementation][size]
         x = np.arange(1, len(times)+1)
         mean_values, ci_values = ci_list(times)
@@ -211,14 +214,11 @@ def main():
                             help="Date of the results file")
     parser.add_argument("--file-extension", dest="file-extension", type=str, default=".txt",
                             help="File extension of results file")
-    parser.add_argument("--datadir", dest="datadir", type=str, default="",
-                            help="Directory of the results file; include '/' at the end if non-empty")
     args = parser.parse_args()
     options = dict(vars(args))
 
     # Preprocessing
-    Path(options["datapath"]).mkdir(parents=True)
-    file: str = options["datapath"] + "/" + options["datadir"] + options["file-preamble"] + options["file-date"] + options["file-extension"]
+    file: str = options["datapath"] + "/" + options["file-preamble"] + options["file-date"] + options["file-extension"]
     if not Path(file).is_file():
         print(f"Error: {file} is not a file.", file=sys.stderr)
         return 1

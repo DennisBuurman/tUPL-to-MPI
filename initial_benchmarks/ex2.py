@@ -92,7 +92,8 @@ def create_plot(thread_count: List[int], times: Dict[str, float], options) -> No
     
     x = np.arange(len(thread_count))
 
-    fig, ax = plt.subplots(layout="constrained")
+    fig, ax = plt.subplots()
+    fig.tight_layout()
     markers = "x+*2"
     count = 0
 
@@ -106,7 +107,7 @@ def create_plot(thread_count: List[int], times: Dict[str, float], options) -> No
     ax.set_xlabel("Thread count")
     ax.set_title(f"Thread count variation: {name}")
     ax.set_xticks(thread_count)
-    ax.legend(loc="upper right", ncols=1)
+    ax.legend(loc="upper right", ncol=1)
     # ax.set_ylim(0, 3)
 
     plt.savefig(f"{datapath}/exp_2_{name}.png")
@@ -166,7 +167,8 @@ def create_confidence_interval(data: Dict, options) -> None:
     
     thread_count: int = 96 # denote thread count to create CI over
     for implementation in data:
-        fig, ax = plt.subplots(layout="constrained")
+        fig, ax = plt.subplots()
+        fig.tight_layout()
         times: List[float] = data[implementation][thread_count]
         x = np.arange(1, len(times)+1)
         mean_values, ci_values = ci_list(times)
@@ -193,14 +195,11 @@ def main():
                             help="Date of the results file")
     parser.add_argument("--file-extension", dest="file-extension", type=str, default=".txt",
                             help="File extension of results file")
-    parser.add_argument("--datadir", dest="datadir", type=str, default="",
-                            help="Directory of the results file; include '/' at the end if non-empty")
     args = parser.parse_args()
     options = dict(vars(args))
 
     # Preprocessing
-    Path(options["datapath"]).mkdir(parents=True)
-    file: str = options["datapath"] + "/" + options["datadir"] + options["file-preamble"] + options["file-date"] + options["file-extension"]
+    file: str = options["datapath"] + "/" + options["file-preamble"] + options["file-date"] + options["file-extension"]
     if not Path(file).is_file():
         print(f"Error: {file} is not a file.", file=sys.stderr)
         return 1
