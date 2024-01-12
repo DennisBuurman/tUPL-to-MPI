@@ -15,11 +15,13 @@ import glob
 from tqdm.auto import tqdm
 import time
 
+from typing import Dict, List
+
 # Date string
 date = datetime.today().strftime("%d-%m-%Y")
 
 # Experiment 1 parameters
-ex1_config = {
+ex1_config: Dict[str] = {
     "seed": "971",
     "variant": "own_inc_loc",
     "size": "28",
@@ -31,7 +33,7 @@ ex1_config = {
 }
 
 # Experiment 2 parameters
-ex2_config = {
+ex2_config: Dict[str] = {
     "DAS5": {
         "seed": "971",
         "variant": "own own_inc own_loc own_inc_loc",
@@ -54,66 +56,36 @@ ex2_config = {
     }
 }
 
-execs = ["own", "own_loc", "own_inc", "own_inc_loc"]
+execs: List[str] = ["own", "own_loc", "own_inc", "own_inc_loc"]
 
-def run_experiment(config, options, ex_num):
-    # Configuration variables
-    variant = config['variant']
-    size = config['size']
-    clusters = " ".join([str(x) for x in config['clusters']])
-    dimension = " ".join([str(x) for x in config['dimension']])
-    seed = config['seed']
-    nodes = config['nodes']
-    tasks = config['ntasks-per-node']
-    repeat = config['repeat']
-
-    # Argument variables
-    output_dir = options["outputdir"]
-    compute_cluster = options["compute-cluster"]
-    datapath = options["datapath"]
-    scriptpath = options["scriptpath"]
-
-    print("> Running experiment 1 ...")
-
-    # Check if any .out files still in directory
-    old_results = len(glob.glob1(".","*.out"))
-    if old_results > 0:
-        print(f"WARNING: {old_results} '*.out' files already present in directory!")
-
-    # Prepare commands and execute script
-    file = scriptpath + "/submit-exp.py"
+# Function to verify files
+def exists(file: str) -> bool:
     f = Path(file)
     if not f.is_file():
         print(f"ERROR: {file} is not a file.", file=sys.stderr)
-        return 1
+        return False
+    return True
 
-    if len(nodes) != len(tasks) or len(nodes) < 1:
-        print(f"ERROR: nodes and tasks should be a list of list of int containing nodes * tasks configurations constructed using the index of the outer list. \
-              Example: [[1], [8]] [[2, 4], [3]] refers to 1*2, 1*4, and 8*3")
-        return 1
-
-    # Save amount of node*task configs for progress checking
-    config_counter = 0
-
-    # Create commands for each nodes * tasks config
+def submit_jobs(file: str, datapath: str, variant: str, size: str, clusters: str, dimension: str, seed: str, nodes: List[List[int]], tasks: List[List[int]], repeat: str) -> int:
+    config_counter: int = 0 # count node*task configs
     for i in range(len(nodes)):
-        n_list = nodes[i]
-        t_list = tasks[i]
-        node_str = ""
+        n_list: List[int] = nodes[i]
+        t_list: List[int] = tasks[i]
+        node_str: str = ""
         for n in n_list:
             node_str += str(n) + " "
-        tasks_str = ""
+        tasks_str: str = ""
         for t in t_list:
             tasks_str += str(t) + " "
-        command = f"./{file} --datapath {datapath} --variant {variant} --size {size} --clusters {clusters} --dimension {dimension} --seed {seed} --nodes {node_str} --ntasks-per-node {tasks_str} --repeat {repeat}"
+        command: str = f"./{file} --datapath {datapath} --variant {variant} --size {size} --clusters {clusters} --dimension {dimension} --seed {seed} --nodes {node_str} --ntasks-per-node {tasks_str} --repeat {repeat}"
         print(f"> Running commmand: {command}")
         subprocess.run(command.split())
-        config_counter += len(n_list) * len(t_list)
+        config_counter += len(n_list) * len(t_list)    
+    return config_counter
 
-    # Check progress of experiment
-    filecount = config_counter * len(variant.split()) * len(size.split()) * len(clusters.split()) * len(dimension.split())
-    current = 0
-    new = len(glob.glob1(".","*.out"))
+def progress(filecount: int, old_results: int) -> None:
+    current: int = 0
+    new: int = len(glob.glob1(".","*.out"))
     pbar = tqdm(total=filecount)
     while (new - old_results < filecount):
         current = new
@@ -121,39 +93,83 @@ def run_experiment(config, options, ex_num):
         new = len(glob.glob1(".","*.out"))
         pbar.update(new - current)
     pbar.close()
-        
-    s_sleep = 300 # ~180s read time and 10*6s calc. time for size 28
-    for i in tqdm(range(0, s_sleep), total = s_sleep, desc ="Waiting for jobs to finish"):
+
+def sleep(seconds: int) -> None:
+    for i in tqdm(range(0, seconds), total = seconds, desc ="Waiting for jobs to finish"):
         time.sleep(1)
 
-    # Process results
-    print("> Processing available results ...")
+def process_results(output_dir: str, compute_cluster: str, scriptpath: str) -> int:
     if not Path(output_dir).is_dir():
         Path(output_dir).mkdir(parents=True)
     filename = f"{output_dir}/EX1-{compute_cluster}-RESULTS-{date}.txt"
     result_file = open(filename, "w")
     file = scriptpath + "/process-results.py"
-    f = Path(file)
-    if not f.is_file():
-        print(f"Error: {file} is not a file.", file=sys.stderr)
+    if not exists(file):
         return 1
     subprocess.run([f"./{file}", "."], stdout=result_file)
     print(f"> Running command: ./{file} .")
     print(f"> Results saved in {filename}")
     result_file.close()
+    return 0
 
+def validate_results() -> None:
+    # TODO
+    pass
+
+def report_results() -> None:
+    # TODO
+    pass
+
+def run_experiment(config: Dict[str], options: Dict[str], ex_num: int) -> int:
+    # Configuration variables
+    variant: str = config['variant']
+    size: str = config['size']
+    clusters: str = " ".join([str(x) for x in config['clusters']])
+    dimension: str = " ".join([str(x) for x in config['dimension']])
+    seed: str = config['seed']
+    nodes: List[List[int]] = config['nodes']
+    tasks: List[List[int]] = config['ntasks-per-node']
+    repeat: str = config['repeat']
+    # Argument variables
+    output_dir: str = options["outputdir"]
+    compute_cluster: str = options["compute-cluster"]
+    datapath: str = options["datapath"]
+    scriptpath: str = options["scriptpath"]
+
+    print(f"> Running experiment {ex_num} ...")
+
+    # Check if any .out files still in directory
+    old_results: int = len(glob.glob1(".","*.out"))
+    if old_results > 0:
+        print(f"WARNING: {old_results} '*.out' files already present in directory!")
+    # Prepare commands and execute script
+    file = scriptpath + "/submit-exp.py"
+    if not exists(file):
+        return 1
+    # Check nodes and tasks lists
+    if len(nodes) != len(tasks) or len(nodes) < 1:
+        print(f"ERROR: nodes and tasks should be a list of list of int containing nodes * tasks configurations constructed using the index of the outer list. \
+              Example: [[1], [8]] [[2, 4], [3]] refers to 1*2, 1*4, and 8*3")
+        return 1
+    # Create commands for each nodes * tasks config
+    config_counter = submit_jobs(file, datapath, variant, size, clusters, dimension, seed, nodes, tasks, repeat)
+    # Check progress of experiment
+    filecount = config_counter * len(variant.split()) * len(size.split()) * len(clusters.split()) * len(dimension.split())
+    progress(filecount, old_results)
+    # Wait for results to finish
+    sleep(300) # ~180s read time and 10*6s calc. time for size 28
+    # Process results
+    print("> Processing available results ...")
+    res: int = process_results(output_dir, compute_cluster, scriptpath)
+    if res != 0:
+        return res
+    # Create results report
+    report_results()
+    # Finish
     print("Done!")
     print(f"Visualize results by running:\n./ex{ex_num}.py --compute-cluster {compute_cluster} --file-date {date} --datapath {output_dir}")
 
     return 0
-
-def validate_results():
-    # TODO
-    pass
-
-def report_results():
-    # TODO
-    pass
 
 def main():
     parser = ArgumentParser()
@@ -170,10 +186,10 @@ def main():
     # TODO: only validate and report existing results
     # TODO: clean *.out files argument
     args = parser.parse_args()
-    options = dict(vars(args))
+    options: Dict[str] = dict(vars(args))
 
     # Run selected experiment
-    experiment = options["experiment"]
+    experiment: int = options["experiment"]
     del options["experiment"]
     if experiment == 1:
         return(run_experiment(ex1_config, options, 1))
