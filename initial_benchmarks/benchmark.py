@@ -14,12 +14,15 @@ from pathlib import Path
 import glob
 from tqdm.auto import tqdm
 import time
-import re
+import os
 
 from typing import Dict, List, Tuple
 
+# DAS account name
+account_name: str = "dbuurman"
+
 # Date string
-date = datetime.today().strftime("%d-%m-%Y")
+date: str = datetime.today().strftime("%d-%m-%Y")
 
 # Experiment 1 parameters
 ex1_config: Dict[str, any] = {
@@ -68,6 +71,15 @@ def exists(file: str) -> bool:
         return False
     return True
 
+def split_arguments(arguments: List[str]) -> Dict[str, List[str]]:
+    names: Dict[str, List[str]] = {}
+    # Get arguments and values in dict
+    for a in arguments:
+        options = a.strip("\n").split()
+        n = options[0] # argument name
+        names[n] = options[1:] # argument options / values
+    return names
+
 def submit_jobs(file: str, datapath: str, variant: str, size: str, clusters: str, dimension: str, seed: str, nodes: List[List[int]], tasks: List[List[int]], repeat: str) -> Tuple[int, List[str]]:
     config_counter: int = 0 # count node*task configs
     command_list: List[str] = []
@@ -91,7 +103,7 @@ def submit_jobs(file: str, datapath: str, variant: str, size: str, clusters: str
 def progress(filecount: int, old_results: int) -> None:
     current: int = 0
     new: int = len(glob.glob1(".","*.out"))
-    pbar = tqdm(total=filecount)
+    pbar = tqdm(total=filecount, desc="Waiting for jobs to start")
     while (new - old_results < filecount):
         current = new
         time.sleep(1)
@@ -99,9 +111,26 @@ def progress(filecount: int, old_results: int) -> None:
         pbar.update(new - current)
     pbar.close()
 
-def sleep(seconds: int) -> None:
-    for i in tqdm(range(0, seconds), total = seconds, desc ="Waiting for jobs to finish"):
+def sleep_bar(seconds: int, msg="Waiting") -> None:
+    for i in tqdm(range(0, seconds), total=seconds, desc=msg):
         time.sleep(1)
+
+def wait_on_queue() -> None:
+    try:
+        grep: str = subprocess.check_output(f"squeue | grep {account_name}", shell=True)
+    except Exception as e:
+        grep: str = ""
+    time_spent = 0
+    pbar = tqdm(total=15*60, desc="Waiting for jobs to finish")
+    while (grep or time_spent == 15*60):
+        time.sleep(1)
+        time_spent += 1
+        pbar.update(1)
+        try:
+            grep = subprocess.check_output(f"squeue | grep {account_name}", shell=True)
+        except Exception as e:
+            grep = ""
+    pbar.close()
 
 def process_results(output_dir: str, compute_cluster: str, scriptpath: str) -> int:
     if not Path(output_dir).is_dir():
@@ -117,14 +146,38 @@ def process_results(output_dir: str, compute_cluster: str, scriptpath: str) -> i
     result_file.close()
     return 0
 
-def validate_results(filename) -> None:
-    # Check the result of each configuration and report errors
-    regex_suffix = "id[0-9]+\.out" # output file regex
+def validate_file(filename: str, repeat=10) -> bool:
     with open(filename, "r") as f:
-        line = f.readline()
-        # TODO: split commands to create regex prefix
-        # TODO: read matching file(s) and check if content is valid
-    pass
+        for line in (f.readlines()[-repeat:]):
+            if not line.startswith("OK"):
+                return False
+    return True
+
+def validate_results(filename) -> List[str]:
+    invalid: List[str] = []
+    if not exists(filename):
+        return
+    # Check the result of each configuration and report errors
+    suffix = "id[0-9]*.out" # output file glob regex
+    valid = False
+    with open(filename, "r") as f:
+        for config in f.readlines():
+            a: Dict[str, List[str]] = split_arguments(config.split("--")[1:])
+            prefix = f"{a['variant'][0]}_s{a['size'][0]}_c{a['clusters'][0]}_d{a['dimension'][0]}_{a['nodes'][0]}x{a['ntasks-per-node'][0]}_"
+            file_list: List[str] = glob.glob1(".",f"{prefix}{suffix}")
+            valid = False
+            for output_file in file_list:
+                if valid:
+                    os.remove(output_file) # Other file is already valid, remove duplicate result files
+                    print(f"WARNING: duplicate result removed for config:\n {config}")
+                elif validate_file(output_file, repeat=int(a['repeat'][0])):
+                    valid = True
+                else:
+                    os.remove(output_file)
+                    print(f"WARNING: invalid result removed for config:\n {config}")
+            if not valid:
+                invalid.append(config.strip("\n"))
+    return invalid
 
 def write_commands_to_file(command_list: List[str]) -> str:
     config_list: List[str] = []
@@ -133,15 +186,9 @@ def write_commands_to_file(command_list: List[str]) -> str:
         parts: List[str] = command.split("--")
         script: str = parts[0].strip()
         arguments: List[str] = parts[1:]
-        names: Dict[str, List[str]] = {}
-        template: str = script + " "
-        # Get arguments and values in dict
-        for a in arguments:
-            options = a.split()
-            n = options[0] # argument name
-            names[n] = options[1:] # argument options / values
+        names: Dict[str, List[str]] = split_arguments(arguments)
         # Remove arguments with singular value
-        template += f"--datapath {names['datapath'][0]} --seed {names['seed'][0]} --repeat {names['repeat'][0]} "
+        template: str = f"{script} --datapath {names['datapath'][0]} --seed {names['seed'][0]} --repeat {names['repeat'][0]}"
         del names["datapath"]
         del names["seed"]
         del names["repeat"]
@@ -152,7 +199,7 @@ def write_commands_to_file(command_list: List[str]) -> str:
                     for dimension in names["dimension"]:
                         for nodes in names["nodes"]:
                             for tasks in names["ntasks-per-node"]:
-                                config: str = template + f"--variant {variant} --size {size} --clusters {clusters} --dimension {dimension} --nodes {nodes} --ntasks-per-node {tasks}"
+                                config: str = f"{template} --variant {variant} --size {size} --clusters {clusters} --dimension {dimension} --nodes {nodes} --ntasks-per-node {tasks}"
                                 config_list.append(config)
                             
     # Create file containing all individual commands
@@ -173,6 +220,7 @@ def run_experiment(config: Dict[str, any], options: Dict[str, any], ex_num: int)
     nodes: List[List[int]] = config['nodes']
     tasks: List[List[int]] = config['ntasks-per-node']
     repeat: str = config['repeat']
+    
     # Argument variables
     output_dir: str = options["outputdir"]
     compute_cluster: str = options["compute-cluster"]
@@ -185,35 +233,61 @@ def run_experiment(config: Dict[str, any], options: Dict[str, any], ex_num: int)
     old_results: int = len(glob.glob1(".","*.out"))
     if old_results > 0:
         print(f"WARNING: {old_results} '*.out' files already present in directory!")
+    
     # Prepare commands and execute script
     file = scriptpath + "/submit-exp.py"
     if not exists(file):
         return 1
-    # Check nodes and tasks lists
     if len(nodes) != len(tasks) or len(nodes) < 1:
         print(f"ERROR: nodes and tasks should be a list of list of int containing nodes * tasks configurations constructed using the index of the outer list. \
               Example: [[1], [8]] [[2, 4], [3]] refers to 1*2, 1*4, and 8*3")
         return 1
-    # Create commands for each nodes * tasks config
+    
+    # Create commands to submit jobs for each nodes * tasks config
     config_counter, command_list = submit_jobs(file, datapath, variant, size, clusters, dimension, seed, nodes, tasks, repeat)
-    # Check progress of experiment
+    
+    # Wait for jobs to start and finish
     filecount = config_counter * len(variant.split()) * len(size.split()) * len(clusters.split()) * len(dimension.split())
     if not debug:
-        progress(filecount, old_results)
-        # Wait for results to finish
-        sleep(300) # ~180s read time and 10*6s calc. time for size 28
+        progress(filecount, old_results) # waits for all jobs to start
+        wait_on_queue() # checks run queue for set account name
+    print("> Job runs finished!")
+    
+    # Create commands report file
+    print("> Writing all executed commands to file ...")
+    filename: str = write_commands_to_file(command_list)
+    
+    # Validate result of each individual command, rerun failed configs
+    print("> Validating command outputs ...")
+    invalid: List[str] = validate_results(filename)
+    print(f"{len(invalid)} invalid results encountered")
+    retries: int = 2
+    it: int = 0
+    if not debug:
+        while (len(invalid) > 0 or it < retries):
+            print(f"> Resubmitting {len(invalid)} jobs")
+            for command in invalid:
+                subprocess.run(command.split())
+            # Wait for jobs to finish up
+            old_results = len(glob.glob1(".","*.out"))
+            filecount = len(invalid)
+            progress(filecount, old_results)
+            wait_on_queue()
+            invalid = validate_results(filename)
+            print(f"{len(invalid)} invalid results encountered")
+            it += 1
+        if (len(invalid)):
+            s = '\n'.join(invalid)
+            print(f"ERROR: not all results are valid. Rerun commands:{invalid}", file=sys.stderr)
+            return 1
+
     # Process results
     print("> Processing available results ...")
     res: int = process_results(output_dir, compute_cluster, scriptpath)
     if res != 0:
         return res
-    # Create commands report file
-    print("> Writing all commands to file ...")
-    filename = write_commands_to_file(command_list)
-    # Validate result of each individual command
-    validate_results(filename)
-    # TODO: rerun failed configs (while loop; limiting 5 tries)
-    # Finish
+
+    # Finish up
     print("Done!")
     print(f"Visualize results by running:\n./ex{ex_num}.py --compute-cluster {compute_cluster} --file-date {date} --datapath {output_dir}")
 
@@ -233,10 +307,27 @@ def main():
                             help="Location of the dataset")
     parser.add_argument("--scriptpath", "--s", dest="scriptpath", type=str, default="../tupl-kmeans-39f1073/support",
                             help="Location to directory of submit-exp.py script")
-    # TODO: only validate and report existing results
-    # TODO: clean *.out files argument
+    parser.add_argument("--clean", dest="clean", action="store_true",
+                            help="Clean output scripts; overrides other arguments.")
+    parser.add_argument("--validate", dest="validate", action="store_true",
+                            help="Only validate results in current folder; overrides other arguments.")
+    parser.add_argument("--commands-file", dest="commands-file", type=str, default=f"commands_{date}.txt",
+                            help="Clean output scripts; overrides other arguments.")
     args = parser.parse_args()
     options: Dict[str, any] = dict(vars(args))
+
+    if options["clean"]:
+        for f in glob.glob1(".", "*.out"):
+            os.remove(f)
+    del options["clean"]
+
+    if options["validate"]:
+        if exists(options["commands-file"]):
+            invalid = validate_results(options["commands-file"])
+            msg = '\n'.join(invalid)
+            print(f"{len(invalid)} invalid results encountered:{invalid}")
+    del options["validate"]
+    del options["commands-file"]
 
     if options["debug"]:
         global debug
