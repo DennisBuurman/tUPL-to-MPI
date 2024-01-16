@@ -19,13 +19,23 @@ from datetime import datetime
 from typing import Dict, Tuple, List
 
 # Date string
-date = datetime.today().strftime("%d-%m-%Y")
+date: str = datetime.today().strftime("%d-%m-%Y")
 
 # Column headers of results file entries 
-headers = ["Implementation", "Input Size", "Clusters", "Dimension", "Nodes", "Tasks Per Node", "Worst Calc. Time", "Worst Exec. Time", "Iterations"]
+headers: List[str] = [
+    "Implementation", 
+    "Input Size", 
+    "Clusters", 
+    "Dimension", 
+    "Nodes", 
+    "Tasks Per Node", 
+    "Worst Calc. Time", 
+    "Worst Exec. Time", 
+    "Iterations"
+]
 
 # Implementation number as compared to Annes work
-names = {
+names: Dict[str, str] = {
     "own": "Implementation 1",
     "own_inc": "Implementation 2",
     "own_loc": "Implementation 3",
@@ -202,6 +212,8 @@ def create_confidence_interval(data: Dict, options) -> None:
         plt.close(fig)
 
 def main():
+    global date
+    
     # Argument parsing
     parser = ArgumentParser()
     parser.add_argument("--datapath", dest="datapath", type=str, default="results",
@@ -218,6 +230,8 @@ def main():
     options = dict(vars(args))
 
     # Preprocessing
+    if options["file-date"] != date:
+        date = options["file-date"]
     file: str = options["datapath"] + "/" + options["file-preamble"] + options["file-date"] + options["file-extension"]
     if not Path(file).is_file():
         print(f"Error: {file} is not a file.", file=sys.stderr)

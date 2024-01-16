@@ -16,6 +16,8 @@ from tqdm.auto import tqdm
 import time
 import os
 
+from pprint import pprint
+
 from typing import Dict, List, Tuple
 
 # DAS account name
@@ -63,8 +65,8 @@ ex2_config: Dict[str, any] = {
 execs: List[str] = ["own", "own_inc", "own_loc", "own_inc_loc"]
 debug = False
 
-# Function to verify files
 def exists(file: str) -> bool:
+    """ Checks if given filename is a file in the current directory """
     f = Path(file)
     if not f.is_file():
         print(f"ERROR: {file} is not a file.", file=sys.stderr)
@@ -72,6 +74,7 @@ def exists(file: str) -> bool:
     return True
 
 def split_arguments(arguments: List[str]) -> Dict[str, List[str]]:
+    """ Splits a list of arguments into a dictionary with argument names as keys and argument values as values. """
     names: Dict[str, List[str]] = {}
     # Get arguments and values in dict
     for a in arguments:
@@ -81,6 +84,7 @@ def split_arguments(arguments: List[str]) -> Dict[str, List[str]]:
     return names
 
 def submit_jobs(file: str, datapath: str, variant: str, size: str, clusters: str, dimension: str, seed: str, nodes: List[List[int]], tasks: List[List[int]], repeat: str) -> Tuple[int, List[str]]:
+    """ Submits jobs to DAS5 or DAS6 cluster depending on configuration. Configurations must adhere ex1_config notation. """
     config_counter: int = 0 # count node*task configs
     command_list: List[str] = []
     for i in range(len(nodes)):
@@ -101,6 +105,7 @@ def submit_jobs(file: str, datapath: str, variant: str, size: str, clusters: str
     return config_counter, command_list
 
 def progress(filecount: int, old_results: int) -> None:
+    """ Creates a progress bar in terminal to visualize the percentage of jobs started after submitting """
     current: int = 0
     new: int = len(glob.glob1(".","*.out"))
     pbar = tqdm(total=filecount, desc="Waiting for jobs to start")
@@ -112,10 +117,13 @@ def progress(filecount: int, old_results: int) -> None:
     pbar.close()
 
 def sleep_bar(seconds: int, msg="Waiting") -> None:
+    """ Sleep for given amount of seconds and visualize with a progress bar """
     for i in tqdm(range(0, seconds), total=seconds, desc=msg):
         time.sleep(1)
 
 def wait_on_queue() -> None:
+    """ Wait for all processes of a given account name to exit the queue, or 15 mins.
+        Visualized with a progress bar on the 15 min timer. """
     try:
         grep: str = subprocess.check_output(f"squeue | grep {account_name}", shell=True)
     except Exception as e:
@@ -132,54 +140,10 @@ def wait_on_queue() -> None:
             grep = ""
     pbar.close()
 
-def process_results(output_dir: str, compute_cluster: str, scriptpath: str) -> int:
-    if not Path(output_dir).is_dir():
-        Path(output_dir).mkdir(parents=True)
-    filename = f"{output_dir}/EX1-{compute_cluster}-RESULTS-{date}.txt"
-    result_file = open(filename, "w")
-    file = scriptpath + "/process-results.py"
-    if not exists(file):
-        return 1
-    subprocess.run([f"./{file}", "."], stdout=result_file)
-    print(f"> Running command: ./{file} .")
-    print(f"> Results saved in {filename}")
-    result_file.close()
-    return 0
-
-def validate_file(filename: str, repeat=10) -> bool:
-    with open(filename, "r") as f:
-        for line in (f.readlines()[-repeat:]):
-            if not line.startswith("OK"):
-                return False
-    return True
-
-def validate_results(filename) -> List[str]:
-    invalid: List[str] = []
-    if not exists(filename):
-        return
-    # Check the result of each configuration and report errors
-    suffix = "id[0-9]*.out" # output file glob regex
-    valid = False
-    with open(filename, "r") as f:
-        for config in f.readlines():
-            a: Dict[str, List[str]] = split_arguments(config.split("--")[1:])
-            prefix = f"{a['variant'][0]}_s{a['size'][0]}_c{a['clusters'][0]}_d{a['dimension'][0]}_{a['nodes'][0]}x{a['ntasks-per-node'][0]}_"
-            file_list: List[str] = glob.glob1(".",f"{prefix}{suffix}")
-            valid = False
-            for output_file in file_list:
-                if valid:
-                    os.remove(output_file) # Other file is already valid, remove duplicate result files
-                    print(f"WARNING: duplicate result removed for config:\n {config}")
-                elif validate_file(output_file, repeat=int(a['repeat'][0])):
-                    valid = True
-                else:
-                    os.remove(output_file)
-                    print(f"WARNING: invalid result removed for config:\n {config}")
-            if not valid:
-                invalid.append(config.strip("\n"))
-    return invalid
-
 def write_commands_to_file(command_list: List[str]) -> str:
+    """ Writes individual commands (deconstructed) into a file. 
+        Used for checking each result individually.
+        Can also be used to rerun individual configs manually afterwards. """
     config_list: List[str] = []
     # Construct pairs of command strings and booleans to mark if they have a valid result
     for command in command_list:
@@ -210,7 +174,95 @@ def write_commands_to_file(command_list: List[str]) -> str:
     print(f"> Commands saved in: {filename}")
     return filename
 
+def validate_file(filename: str, repeat=10) -> bool:
+    """ Check if the number of retries succeeded in a given *.out filename """
+    with open(filename, "r") as f:
+        for line in (f.readlines()[-repeat:]):
+            if not line.startswith("OK"):
+                return False
+    return True
+
+def validate_results(filename) -> List[str]:
+    """ Searches and validates *.out files corresponding to each command in the given commands.txt file.
+        Duplicate and invalid results are removed. """
+    invalid: List[str] = []
+    if not exists(filename):
+        return
+    # Check the result of each configuration and report errors
+    suffix = "id[0-9]*.out" # output file glob regex
+    valid = False
+    with open(filename, "r") as f:
+        for config in f.readlines():
+            a: Dict[str, List[str]] = split_arguments(config.split("--")[1:])
+            prefix = f"{a['variant'][0]}_s{a['size'][0]}_c{a['clusters'][0]}_d{a['dimension'][0]}_{a['nodes'][0]}x{a['ntasks-per-node'][0]}_"
+            file_list: List[str] = glob.glob1(".",f"{prefix}{suffix}")
+            valid = False
+            for output_file in file_list:
+                if valid:
+                    os.remove(output_file) # Other file is already valid, remove duplicate result files
+                    print(f"WARNING: duplicate result removed for config:\n {config}")
+                elif validate_file(output_file, repeat=int(a['repeat'][0])):
+                    valid = True
+                else:
+                    os.remove(output_file)
+                    print(f"WARNING: invalid result removed for config:\n {config}")
+            if not valid:
+                invalid.append(config.strip("\n"))
+    return invalid
+
+def resubmit_jobs(invalid: List[str], filename: str, retries: int = 2) -> List[str]:
+    """ Resubmits failed configuration. Limited retries.
+        Adds waiting calls, including progress bars. """
+    it: int = 0
+    while (len(invalid) > 0 or it < retries):
+        print(f"> Resubmitting {len(invalid)} jobs")
+        for command in invalid:
+            subprocess.run(command.split())
+        # Wait for jobs to finish up
+        old_results = len(glob.glob1(".","*.out"))
+        filecount = len(invalid)
+        progress(filecount, old_results)
+        wait_on_queue()
+        invalid = validate_results(filename)
+        print(f"{len(invalid)} invalid results encountered")
+        it += 1
+    return invalid
+
+def sort_results(filename: str) -> None:
+    """ Sort results in filename according by execs order.
+        Cuts own_inc_loc lines and pastes them at the end
+        Only works for original 4 implementations. """
+    with open(filename, "r") as f:
+        lines: List[str] = f.readlines()
+        lines = sorted(lines)
+        cut: List[str] = [x for x in lines if x.startswith("own_inc_loc")]
+        lines = [x for x in lines if not x.startswith("own_inc_loc")]
+        lines = lines + cut
+        content: str = "".join(lines)
+    with open(filename, "w") as f:
+        f.write(content)
+
+def process_results(output_dir: str, compute_cluster: str, scriptpath: str) -> int:
+    """ Process the results present in the current directory. 
+        Needs the path to process-results.py in scriptpath.
+        Results are saved in directory output_dir. """
+    if not Path(output_dir).is_dir():
+        Path(output_dir).mkdir(parents=True)
+    filename = f"{output_dir}/EX1-{compute_cluster}-RESULTS-{date}.txt"
+    with open(filename, "w") as result_file:
+        file = scriptpath + "/process-results.py"
+        if not exists(file):
+            return 1
+        subprocess.run([f"./{file}", "."], stdout=result_file)
+    print(f"> Running command: ./{file} .")
+    sort_results(filename)
+    print(f"> Results saved in {filename}")
+    return 0
+
 def run_experiment(config: Dict[str, any], options: Dict[str, any], ex_num: int) -> int:
+    """ Run experiment ex_num with the provided experiment configuration and command line arguments. """
+    print(f"> Running experiment {ex_num} ...")
+    
     # Configuration variables
     variant: str = config['variant']
     size: str = config['size']
@@ -227,8 +279,6 @@ def run_experiment(config: Dict[str, any], options: Dict[str, any], ex_num: int)
     datapath: str = options["datapath"]
     scriptpath: str = options["scriptpath"]
 
-    print(f"> Running experiment {ex_num} ...")
-
     # Check if any .out files still in directory
     old_results: int = len(glob.glob1(".","*.out"))
     if old_results > 0:
@@ -240,12 +290,12 @@ def run_experiment(config: Dict[str, any], options: Dict[str, any], ex_num: int)
         return 1
     if len(nodes) != len(tasks) or len(nodes) < 1:
         print(f"ERROR: nodes and tasks should be a list of list of int containing nodes * tasks configurations constructed using the index of the outer list. \
-              Example: [[1], [8]] [[2, 4], [3]] refers to 1*2, 1*4, and 8*3")
+              Example: [[1], [8]] [[2, 4], [3]] refers to 1*2, 1*4, and 8*3", file=sys.stderr)
         return 1
     
     # Create commands to submit jobs for each nodes * tasks config
     config_counter, command_list = submit_jobs(file, datapath, variant, size, clusters, dimension, seed, nodes, tasks, repeat)
-    
+   
     # Wait for jobs to start and finish
     filecount = config_counter * len(variant.split()) * len(size.split()) * len(clusters.split()) * len(dimension.split())
     if not debug:
@@ -261,24 +311,11 @@ def run_experiment(config: Dict[str, any], options: Dict[str, any], ex_num: int)
     print("> Validating command outputs ...")
     invalid: List[str] = validate_results(filename)
     print(f"{len(invalid)} invalid results encountered")
-    retries: int = 2
-    it: int = 0
     if not debug:
-        while (len(invalid) > 0 or it < retries):
-            print(f"> Resubmitting {len(invalid)} jobs")
-            for command in invalid:
-                subprocess.run(command.split())
-            # Wait for jobs to finish up
-            old_results = len(glob.glob1(".","*.out"))
-            filecount = len(invalid)
-            progress(filecount, old_results)
-            wait_on_queue()
-            invalid = validate_results(filename)
-            print(f"{len(invalid)} invalid results encountered")
-            it += 1
+        invalid = resubmit_jobs(invalid, filename)
         if (len(invalid)):
             s = '\n'.join(invalid)
-            print(f"ERROR: not all results are valid. Rerun commands:{invalid}", file=sys.stderr)
+            print(f"ERROR: not all results are valid. Rerun commands:{s}", file=sys.stderr)
             return 1
 
     # Process results
@@ -286,11 +323,10 @@ def run_experiment(config: Dict[str, any], options: Dict[str, any], ex_num: int)
     res: int = process_results(output_dir, compute_cluster, scriptpath)
     if res != 0:
         return res
-
+    
     # Finish up
     print("Done!")
     print(f"Visualize results by running:\n./ex{ex_num}.py --compute-cluster {compute_cluster} --file-date {date} --datapath {output_dir}")
-
     return 0
 
 def main():
@@ -316,19 +352,24 @@ def main():
     args = parser.parse_args()
     options: Dict[str, any] = dict(vars(args))
 
+    # Only clean output files
     if options["clean"]:
         for f in glob.glob1(".", "*.out"):
             os.remove(f)
+        return 0
     del options["clean"]
 
+    # Only validate results
     if options["validate"]:
         if exists(options["commands-file"]):
             invalid = validate_results(options["commands-file"])
             msg = '\n'.join(invalid)
             print(f"{len(invalid)} invalid results encountered:{invalid}")
+        return 0
     del options["validate"]
     del options["commands-file"]
 
+    # Enable debug mode
     if options["debug"]:
         global debug
         debug = True
@@ -344,3 +385,4 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
+    
