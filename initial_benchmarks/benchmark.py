@@ -39,6 +39,8 @@ ex1_config: Dict[str, any] = {
 }
 
 # Experiment 2 parameters
+# [[1], [1, 2], [1, 2, 3, 4, 5, 6, 7, 8, 12, 16, 20]]
+# [[2, 4, 8, 12, 16], [12], [16]]
 ex2_config: Dict[str, any] = {
     "DAS5": {
         "seed": "971",
@@ -46,8 +48,8 @@ ex2_config: Dict[str, any] = {
         "size": "26",
         "clusters": [4],
         "dimension": [4],
-        "nodes": [[1], [1, 2], [1, 2, 3, 4, 5, 6, 7, 8, 12, 16, 20]],
-        "ntasks-per-node": [[2, 4, 8, 12, 16], [12], [16]],
+        "nodes": [[1], [1, 2, 3, 4, 5, 6, 7, 8, 12, 16]],
+        "ntasks-per-node": [[2, 4, 8, 12, 16, 24], [32]],
         "repeat": "10"
     },
     "DAS6": {
@@ -83,7 +85,7 @@ def split_arguments(arguments: List[str]) -> Dict[str, List[str]]:
         names[n] = options[1:] # argument options / values
     return names
 
-def submit_jobs(file: str, datapath: str, variant: str, size: str, clusters: str, dimension: str, seed: str, nodes: List[List[int]], tasks: List[List[int]], repeat: str) -> Tuple[int, List[str]]:
+def submit_jobs(file: str, datapath: str, variant: str, size: str, clusters: str, dimension: str, seed: str, nodes: List[List[int]], tasks: List[List[int]], repeat: str, compute_cluster: str) -> Tuple[int, List[str]]:
     """ Submits jobs to DAS5 or DAS6 cluster depending on configuration. Configurations must adhere ex1_config notation. """
     config_counter: int = 0 # count node*task configs
     command_list: List[str] = []
@@ -96,7 +98,7 @@ def submit_jobs(file: str, datapath: str, variant: str, size: str, clusters: str
         tasks_str: str = ""
         for t in t_list:
             tasks_str += str(t) + " "
-        command: str = f"./{file} --datapath {datapath} --variant {variant} --size {size} --clusters {clusters} --dimension {dimension} --seed {seed} --nodes {node_str} --ntasks-per-node {tasks_str} --repeat {repeat}"
+        command: str = f"./{file} --datapath {datapath} --variant {variant} --size {size} --clusters {clusters} --dimension {dimension} --seed {seed} --nodes {node_str} --ntasks-per-node {tasks_str} --repeat {repeat} --cluster {compute_cluster}"
         print(f"> Running commmand: {command}")
         if not debug:
             subprocess.run(command.split())
@@ -294,7 +296,7 @@ def run_experiment(config: Dict[str, any], options: Dict[str, any], ex_num: int)
         return 1
     
     # Create commands to submit jobs for each nodes * tasks config
-    config_counter, command_list = submit_jobs(file, datapath, variant, size, clusters, dimension, seed, nodes, tasks, repeat)
+    config_counter, command_list = submit_jobs(file, datapath, variant, size, clusters, dimension, seed, nodes, tasks, repeat, compute_cluster)
    
     # Wait for jobs to start and finish
     filecount = config_counter * len(variant.split()) * len(size.split()) * len(clusters.split()) * len(dimension.split())

@@ -14,6 +14,17 @@ import common
 
 defaults = { "size": 28, "clusters": 4, "dimension": 4, "seed": 971 }
 
+modules = {
+"DAS5" : """. /etc/bashrc
+. /etc/profile.d/modules.sh
+module load openmpi/gcc/64
+""",
+"DAS6" : """. /etc/bashrc
+. /etc/profile.d/lmod.sh
+module load openmpi/gcc/64
+MPI_RUN=mpirun
+"""
+}
 
 job_template = """#!/bin/bash
 #SBATCH --time=00:15:00
@@ -24,12 +35,7 @@ job_template = """#!/bin/bash
 
 $config
 
-. /etc/bashrc
-# DAS-5:
-. /etc/profile.d/modules.sh
-# DAS-6:
-# . /etc/profile.d/lmod.sh
-module load openmpi/gcc/64
+$modules
 
 datadir=$datadir
 numRuns=$repeat
@@ -38,8 +44,6 @@ APP=${script_path}/../src/$appexec
 ## ./MPI_Kmeans -i input_file -f format -k number_of_means -d convergence_delta -t threshold -s exp_suffix -r numRuns
 ARGS="-i $$datadir -f 1 -k $clusters -d 0.0001 -t 0 -s ${suffix} -r $$numRuns"
 OMPI_OPTS="--mca btl ^usnic,tcp"
-# DAS-6/OpenHPC modules do not set MPI_RUN, so:
-# MPI_RUN=mpirun
 
 $$MPI_RUN $$OMPI_OPTS $$APP $$ARGS
 
@@ -83,6 +87,7 @@ def create_job_script(params) -> str:
 
     templ = Template(job_template)
     job_script = templ.substitute(config=dump_config(params),
+                                  modules=modules[params["cluster"]],
                                   jobname=common.create_job_name(params),
                                   script_path=Path(__file__).absolute().parent.as_posix(),
                                   appexec=execs[params["variant"]],
@@ -180,6 +185,9 @@ def main() -> int:
     parser.add_argument("--repeat", dest="repeat", type=int,
                         nargs=1, default=5,
                         help="Number of times to repeat the experiment")
+    parser.add_argument("--cluster", dest="cluster", type=str,
+                        nargs=1, default="DAS5", choices=["DAS5", "DAS6"],
+                        help="Cluster the experiment is run on")
     common.DataSetRegistry.add_dataset_parameters(parser)
 
     # Parse arguments & enumerate job script
