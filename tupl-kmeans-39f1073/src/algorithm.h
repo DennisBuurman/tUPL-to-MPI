@@ -59,6 +59,8 @@ void kmeansRecalc(struct Options &options, const std::string &variant,
   const uint64_t numDataPoints(options.numDataPoints);
   const int dataDim(options.dataDim);
   
+  initRandom(options);
+
   //log the start time
   MPI_Barrier(MPI_COMM_WORLD);
   start_time = MPI_Wtime();
@@ -70,7 +72,6 @@ void kmeansRecalc(struct Options &options, const std::string &variant,
   double ** meanValues = allocate2dDoubleArray(numMeans,dataDim);
   double ** oldMeanValues = allocate2dDoubleArray(numMeans,dataDim);
   double * meanValuesBuff = new double[numMeans * dataDim];
-  initRandom(options);
   double threshold = numDataPoints * options.thresholdMultiplier;
   
   initializeMeans(options, data, meanSize, meanSizeBuff,
