@@ -41,8 +41,8 @@ datadir=$datadir
 numRuns=$repeat
 
 APP=${script_path}/../src/$appexec
-## ./MPI_Kmeans -i input_file -f format -k number_of_means -d convergence_delta -t threshold -s exp_suffix -r numRuns
-ARGS="-i $$datadir -f 1 -k $clusters -d 0.0001 -t 0 -s ${suffix} -r $$numRuns"
+## ./MPI_Kmeans -i input_file -f format -k number_of_means -d convergence_delta -t threshold -s exp_suffix -r numRuns -x init_seed
+ARGS="-i $$datadir -f 1 -k $clusters -d 0.0001 -t 0 -s ${suffix} -r $$numRuns -x $init_seed"
 OMPI_OPTS="--mca btl ^usnic,tcp"
 
 $$MPI_RUN $$OMPI_OPTS $$APP $$ARGS
@@ -92,6 +92,7 @@ def create_job_script(params) -> str:
                                   script_path=Path(__file__).absolute().parent.as_posix(),
                                   appexec=execs[params["variant"]],
                                   suffix="test",   # TODO: make option?
+                                  init_seed=params["init-seed"],
                                   **params)
     return job_script
 
@@ -188,6 +189,9 @@ def main() -> int:
     parser.add_argument("--cluster", dest="cluster", type=str,
                         nargs=1, default="DAS5", choices=["DAS5", "DAS6"],
                         help="Cluster the experiment is run on")
+    parser.add_argument("--init-seed", dest="init-seed", type=int,
+                        nargs=1, default=340632450,
+                        help="Initialization seed for the MPI ranks")
     common.DataSetRegistry.add_dataset_parameters(parser)
 
     # Parse arguments & enumerate job script

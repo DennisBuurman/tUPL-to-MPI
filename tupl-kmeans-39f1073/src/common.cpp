@@ -36,11 +36,13 @@ void initRandom(const struct Options &options)
 {
   unsigned int seed;
   if (mpi_rank == 0) {
-    // std::ifstream randomIn("/dev/random");
-    // randomIn.read(reinterpret_cast<char *>(&seed), sizeof(seed));
-    // randomIn.close();
-
-    seed = 340632450;
+    if (!options.seedFlag) {
+      std::ifstream randomIn("/dev/random");
+      randomIn.read(reinterpret_cast<char *>(&seed), sizeof(seed));
+      randomIn.close();
+    } else {
+      seed = options.seed;
+    }
 
     std::cout << "EXP " << options.currentRun << ": using seed "
         << std::hex << seed << std::dec << std::endl;
@@ -86,7 +88,7 @@ bool parseArgs(int argc, char ** argv, struct Options &options)
 
   options.numRuns = 1;
 
-  while ((c = getopt(argc, argv, "hi:f:k:d:t:s:r:")) != -1)
+  while ((c = getopt(argc, argv, "hi:f:k:d:t:s:r:x:")) != -1)
     {
       switch (c)
         {
@@ -124,12 +126,17 @@ bool parseArgs(int argc, char ** argv, struct Options &options)
             options.numRuns = std::atoi(optarg);
             break;
 
+          case 'x':
+            options.seedFlag = true;
+            options.seed = std::atoi(optarg);
+            break;
+
           case 'h':
             showHelp(progName);
             exit(0);
         }
     }
-
+  
   argc -= optind;
   argv += optind;
 
@@ -171,6 +178,8 @@ int runVariant(int argc, char **argv, kMeansVariantFunc variantFunc)
   mpi_hostname[hostNameLength] = 0;
   
   struct Options options;
+  options.seedFlag = false;
+  options.seed = 0;
   if (!parseArgs(argc, argv, options))
     return 1;
   

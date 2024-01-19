@@ -45,6 +45,9 @@ struct Options {
   int numRuns;
   int currentRun;
 
+  bool seedFlag;
+  int seed;
+
   /* Determined when reading input file */
   uint64_t numDataPoints;
   uint64_t numLocalDataPoints;

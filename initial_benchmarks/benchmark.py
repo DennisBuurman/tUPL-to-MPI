@@ -15,6 +15,7 @@ import glob
 from tqdm.auto import tqdm
 import time
 import os
+import random
 
 from pprint import pprint
 
@@ -85,7 +86,7 @@ def split_arguments(arguments: List[str]) -> Dict[str, List[str]]:
         names[n] = options[1:] # argument options / values
     return names
 
-def submit_jobs(file: str, datapath: str, variant: str, size: str, clusters: str, dimension: str, seed: str, nodes: List[List[int]], tasks: List[List[int]], repeat: str, compute_cluster: str) -> Tuple[int, List[str]]:
+def submit_jobs(file: str, datapath: str, variant: str, size: str, clusters: str, dimension: str, seed: str, nodes: List[List[int]], tasks: List[List[int]], repeat: str, compute_cluster: str, init_seed: int) -> Tuple[int, List[str]]:
     """ Submits jobs to DAS5 or DAS6 cluster depending on configuration. Configurations must adhere ex1_config notation. """
     config_counter: int = 0 # count node*task configs
     command_list: List[str] = []
@@ -98,7 +99,7 @@ def submit_jobs(file: str, datapath: str, variant: str, size: str, clusters: str
         tasks_str: str = ""
         for t in t_list:
             tasks_str += str(t) + " "
-        command: str = f"./{file} --datapath {datapath} --variant {variant} --size {size} --clusters {clusters} --dimension {dimension} --seed {seed} --nodes {node_str} --ntasks-per-node {tasks_str} --repeat {repeat} --cluster {compute_cluster}"
+        command: str = f"./{file} --datapath {datapath} --variant {variant} --size {size} --clusters {clusters} --dimension {dimension} --seed {seed} --nodes {node_str} --ntasks-per-node {tasks_str} --repeat {repeat} --cluster {compute_cluster} --init_seed {init_seed}"
         print(f"> Running commmand: {command}")
         if not debug:
             subprocess.run(command.split())
@@ -351,6 +352,8 @@ def main():
                             help="Only validate results in current folder; overrides other arguments.")
     parser.add_argument("--commands-file", dest="commands-file", type=str, default=f"commands_{date}.txt",
                             help="Clean output scripts; overrides other arguments.")
+    parser.add_argument("--seed", dest="seed", type=int,
+                            help="MPI rank init seed")
     args = parser.parse_args()
     options: Dict[str, any] = dict(vars(args))
 
@@ -376,6 +379,10 @@ def main():
         global debug
         debug = True
         print("--- Debug mode enabled ---")
+
+    # Generate random seed if none set
+        if options["seed"] == None:
+            options["seed"] = random.randint(0, sys.maxsize)
 
     # Run selected experiment
     experiment: int = options["experiment"]
