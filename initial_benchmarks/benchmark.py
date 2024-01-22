@@ -17,8 +17,6 @@ import time
 import os
 import random
 
-from pprint import pprint
-
 from typing import Dict, List, Tuple
 
 # DAS account name
@@ -27,7 +25,7 @@ account_name: str = "dbuurman"
 # Date string
 date: str = datetime.today().strftime("%d-%m-%Y")
 
-# Experiment 1 parameters
+# Experiment 1 default parameters
 ex1_config: Dict[str, any] = {
     "seed": "971",
     "variant": "own own_inc own_loc own_inc_loc",
@@ -39,9 +37,7 @@ ex1_config: Dict[str, any] = {
     "repeat": "10"
 }
 
-# Experiment 2 parameters
-# [[1], [1, 2], [1, 2, 3, 4, 5, 6, 7, 8, 12, 16, 20]]
-# [[2, 4, 8, 12, 16], [12], [16]]
+# Experiment 2 default parameters
 ex2_config: Dict[str, any] = {
     "DAS5": {
         "seed": "971",
@@ -340,6 +336,8 @@ def main():
                             help="Compute cluster in use")
     parser.add_argument("--experiment", "--e", dest="experiment", type=int, default=1, choices=[1, 2],
                             help="Experiment number to execute")
+    parser.add_argument("--alternative", "--a", dest="alternative", action="store_true",
+                            help="Set alternative configuration for given experiment")
     parser.add_argument("--outputdir", "--o", dest="outputdir", type=str, default="results",
                             help="Location of the resulting output")
     parser.add_argument("--datapath", "--dp", dest="datapath", type=str, default="/var/scratch/dbuurman/kmeans",
@@ -382,14 +380,20 @@ def main():
 
     # Generate random seed if none set
         if options["seed"] == None:
-            options["seed"] = random.randint(0, sys.maxsize)
+            seed: int = random.randint(0, sys.maxsize)
+            print(f"WARNING: --seed param not set; random seed {seed} used")
+            options["seed"] = seed
 
     # Run selected experiment
     experiment: int = options["experiment"]
     del options["experiment"]
     if experiment == 1:
+        if options["alternative"]:
+            ex1_config["nodes"] = [[1]] # change to single node comparison experiment
         return(run_experiment(ex1_config, options, 1))
     elif experiment == 2:
+        if options["alternative"]:
+            ex2_config[options["compute-cluster"]]["size"] = "30" # change to single bigger input size
         return(run_experiment(ex2_config[options["compute-cluster"]], options, 2))
 
 if __name__ == "__main__":
