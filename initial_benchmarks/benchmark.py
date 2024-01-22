@@ -95,7 +95,7 @@ def submit_jobs(file: str, datapath: str, variant: str, size: str, clusters: str
         tasks_str: str = ""
         for t in t_list:
             tasks_str += str(t) + " "
-        command: str = f"./{file} --datapath {datapath} --variant {variant} --size {size} --clusters {clusters} --dimension {dimension} --seed {seed} --nodes {node_str} --ntasks-per-node {tasks_str} --repeat {repeat} --cluster {compute_cluster} --init_seed {init_seed}"
+        command: str = f"./{file} --datapath {datapath} --variant {variant} --size {size} --clusters {clusters} --dimension {dimension} --seed {seed} --nodes {node_str} --ntasks-per-node {tasks_str} --repeat {repeat} --cluster {compute_cluster} --init-seed {init_seed}"
         print(f"> Running commmand: {command}")
         if not debug:
             subprocess.run(command.split())
@@ -277,6 +277,7 @@ def run_experiment(config: Dict[str, any], options: Dict[str, any], ex_num: int)
     compute_cluster: str = options["compute-cluster"]
     datapath: str = options["datapath"]
     scriptpath: str = options["scriptpath"]
+    init_seed: int = options["seed"]
 
     # Check if any .out files still in directory
     old_results: int = len(glob.glob1(".","*.out"))
@@ -293,7 +294,7 @@ def run_experiment(config: Dict[str, any], options: Dict[str, any], ex_num: int)
         return 1
     
     # Create commands to submit jobs for each nodes * tasks config
-    config_counter, command_list = submit_jobs(file, datapath, variant, size, clusters, dimension, seed, nodes, tasks, repeat, compute_cluster)
+    config_counter, command_list = submit_jobs(file, datapath, variant, size, clusters, dimension, seed, nodes, tasks, repeat, compute_cluster, init_seed)
    
     # Wait for jobs to start and finish
     filecount = config_counter * len(variant.split()) * len(size.split()) * len(clusters.split()) * len(dimension.split())
