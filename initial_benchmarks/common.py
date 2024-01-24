@@ -36,8 +36,6 @@ def add_parameters(parser: ArgumentParser) -> None:
                             help="Location of the results file to process")
     parser.add_argument("--compute-cluster", dest="compute-cluster", type=str, default="DAS5",
                             help="Compute cluster of the results")
-    parser.add_argument("--file-preamble", dest="file-preamble", type=str, default="EX1-DAS5-RESULTS-",
-                            help="Preamble of results file")
     parser.add_argument("--file-date", dest="file-date", type=str, default=datetime.today().strftime("%d-%m-%Y"),
                             help="Date of the results file")
     parser.add_argument("--file-extension", dest="file-extension", type=str, default=".txt",

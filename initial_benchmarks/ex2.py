@@ -54,6 +54,8 @@ def main():
     # Argument parsing
     parser = ArgumentParser()
     common.add_parameters(parser)
+    parser.add_argument("--file-preamble", dest="file-preamble", type=str, default="EX2-DAS5-RESULTS-",
+                        help="Preamble of results file")
     args = parser.parse_args()
     options = dict(vars(args))
 
