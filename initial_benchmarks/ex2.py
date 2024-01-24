@@ -53,7 +53,7 @@ def main():
 
     # Argument parsing
     parser = ArgumentParser()
-    common.add_argument(parser)
+    common.add_parameters(parser)
     args = parser.parse_args()
     options = dict(vars(args))
 

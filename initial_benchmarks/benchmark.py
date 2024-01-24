@@ -16,6 +16,7 @@ from tqdm.auto import tqdm
 import time
 import os
 import random
+import operator
 
 from typing import Dict, List, Tuple
 
@@ -108,11 +109,13 @@ def progress(filecount: int, old_results: int) -> None:
     current: int = 0
     new: int = len(glob.glob1(".","*.out"))
     pbar = tqdm(total=filecount, desc="Waiting for jobs to start")
-    while (new - old_results < filecount):
+    time_spend = 0
+    while ((new - old_results < filecount) and time_spend < 60*60):
         current = new
         time.sleep(1)
         new = len(glob.glob1(".","*.out"))
         pbar.update(new - current)
+        time_spend += 1
     pbar.close()
 
 def sleep_bar(seconds: int, msg="Waiting") -> None:
@@ -129,7 +132,7 @@ def wait_on_queue() -> None:
         grep: str = ""
     time_spent = 0
     pbar = tqdm(total=15*60, desc="Waiting for jobs to finish")
-    while (grep or time_spent == 15*60):
+    while (grep and time_spent < 30*60):
         time.sleep(1)
         time_spent += 1
         pbar.update(1)
@@ -151,7 +154,7 @@ def write_commands_to_file(command_list: List[str]) -> str:
         arguments: List[str] = parts[1:]
         names: Dict[str, List[str]] = split_arguments(arguments)
         # Remove arguments with singular value
-        template: str = f"{script} --datapath {names['datapath'][0]} --seed {names['seed'][0]} --repeat {names['repeat'][0]}"
+        template: str = f"{script} --datapath {names['datapath'][0]} --seed {names['seed'][0]} --repeat {names['repeat'][0]} --init-seed {names['init-seed'][0]}"
         del names["datapath"]
         del names["seed"]
         del names["repeat"]
@@ -209,7 +212,7 @@ def validate_results(filename) -> List[str]:
                 invalid.append(config.strip("\n"))
     return invalid
 
-def resubmit_jobs(invalid: List[str], filename: str, retries: int = 2) -> List[str]:
+def resubmit_jobs(invalid: List[str], filename: str, retries: int = 4) -> List[str]:
     """ Resubmits failed configuration. Limited retries.
         Adds waiting calls, including progress bars. """
     it: int = 0
@@ -220,7 +223,7 @@ def resubmit_jobs(invalid: List[str], filename: str, retries: int = 2) -> List[s
         # Wait for jobs to finish up
         old_results = len(glob.glob1(".","*.out"))
         filecount = len(invalid)
-        progress(filecount, old_results)
+        # progress(filecount, old_results)
         wait_on_queue()
         invalid = validate_results(filename)
         print(f"{len(invalid)} invalid results encountered")
@@ -231,23 +234,33 @@ def sort_results(filename: str) -> None:
     """ Sort results in filename according by execs order.
         Cuts own_inc_loc lines and pastes them at the end
         Only works for original 4 implementations. """
+    def convert(s: str):
+        try:
+            res = int(s)
+        except ValueError as e:
+            res = float(s)
+        return res
+
     with open(filename, "r") as f:
         lines: List[str] = f.readlines()
-        lines = sorted(lines)
-        cut: List[str] = [x for x in lines if x.startswith("own_inc_loc")]
-        lines = [x for x in lines if not x.startswith("own_inc_loc")]
-        lines = lines + cut
-        content: str = "".join(lines)
+        res: List[str] = []
+        for e in execs:
+            cut: List[Tuple] = [tuple(convert(y) if y not in execs else y for y in x.split()) for x in lines if x.startswith(e+" ")]
+            cut = sorted(cut, key=operator.itemgetter(1, 2, 3, 4, 5))
+            cut = [" ".join([str(x) for x in t]) for t in cut]
+            res = res + ["".join(str(x)) for x in cut]
+        content: str = "\n".join(res)
+
     with open(filename, "w") as f:
         f.write(content)
 
-def process_results(output_dir: str, compute_cluster: str, scriptpath: str) -> int:
+def process_results(output_dir: str, compute_cluster: str, scriptpath: str, ex_num: int, file_date: str) -> int:
     """ Process the results present in the current directory. 
         Needs the path to process-results.py in scriptpath.
         Results are saved in directory output_dir. """
     if not Path(output_dir).is_dir():
         Path(output_dir).mkdir(parents=True)
-    filename = f"{output_dir}/EX1-{compute_cluster}-RESULTS-{date}.txt"
+    filename = f"{output_dir}/EX{ex_num}-{compute_cluster}-RESULTS-{file_date}.txt"
     with open(filename, "w") as result_file:
         file = scriptpath + "/process-results.py"
         if not exists(file):
@@ -278,6 +291,7 @@ def run_experiment(config: Dict[str, any], options: Dict[str, any], ex_num: int)
     datapath: str = options["datapath"]
     scriptpath: str = options["scriptpath"]
     init_seed: int = options["seed"]
+    file_date: str = options["date"]
 
     # Check if any .out files still in directory
     old_results: int = len(glob.glob1(".","*.out"))
@@ -299,7 +313,7 @@ def run_experiment(config: Dict[str, any], options: Dict[str, any], ex_num: int)
     # Wait for jobs to start and finish
     filecount = config_counter * len(variant.split()) * len(size.split()) * len(clusters.split()) * len(dimension.split())
     if not debug:
-        progress(filecount, old_results) # waits for all jobs to start
+        # progress(filecount, old_results) # waits for all jobs to start
         wait_on_queue() # checks run queue for set account name
     print("> Job runs finished!")
     
@@ -320,7 +334,7 @@ def run_experiment(config: Dict[str, any], options: Dict[str, any], ex_num: int)
 
     # Process results
     print("> Processing available results ...")
-    res: int = process_results(output_dir, compute_cluster, scriptpath)
+    res: int = process_results(output_dir, compute_cluster, scriptpath, ex_num, file_date)
     if res != 0:
         return res
     
@@ -347,12 +361,16 @@ def main():
                             help="Location to directory of submit-exp.py script")
     parser.add_argument("--clean", dest="clean", action="store_true",
                             help="Clean output scripts; overrides other arguments.")
+    parser.add_argument("--process", dest="process", action="store_true",
+                            help="Process output scripts; overrides other arguments.")
     parser.add_argument("--validate", dest="validate", action="store_true",
                             help="Only validate results in current folder; overrides other arguments.")
     parser.add_argument("--commands-file", dest="commands-file", type=str, default=f"commands_{date}.txt",
                             help="Clean output scripts; overrides other arguments.")
     parser.add_argument("--seed", dest="seed", type=int,
                             help="MPI rank init seed")
+    parser.add_argument("--date", dest="date", type=str, default=date,
+                            help="Date used in result file name")
     args = parser.parse_args()
     options: Dict[str, any] = dict(vars(args))
 
@@ -363,12 +381,16 @@ def main():
         return 0
     del options["clean"]
 
+    if options["process"]:
+        return process_results(options["outputdir"], options["compute-cluster"], options["scriptpath"], options["experiment"], options["date"])
+    del options["process"]
+
     # Only validate results
     if options["validate"]:
         if exists(options["commands-file"]):
             invalid = validate_results(options["commands-file"])
             msg = '\n'.join(invalid)
-            print(f"{len(invalid)} invalid results encountered:{invalid}")
+            print(f"{len(invalid)} invalid results encountered:\n{msg}")
         return 0
     del options["validate"]
     del options["commands-file"]
@@ -380,10 +402,10 @@ def main():
         print("--- Debug mode enabled ---")
 
     # Generate random seed if none set
-        if options["seed"] == None:
-            seed: int = random.randint(0, sys.maxsize)
-            print(f"WARNING: --seed param not set; random seed {seed} used")
-            options["seed"] = seed
+    if options["seed"] == None:
+        seed: int = random.randint(0, sys.maxsize)
+        print(f"WARNING: --seed param not set; random seed {seed} used")
+        options["seed"] = seed
 
     # Run selected experiment
     experiment: int = options["experiment"]
@@ -394,7 +416,7 @@ def main():
         return(run_experiment(ex1_config, options, 1))
     elif experiment == 2:
         if options["alternative"]:
-            ex2_config[options["compute-cluster"]]["size"] = "30" # change to single bigger input size
+            ex2_config[options["compute-cluster"]]["size"] = "28" # change to single bigger input size
         return(run_experiment(ex2_config[options["compute-cluster"]], options, 2))
 
 if __name__ == "__main__":
