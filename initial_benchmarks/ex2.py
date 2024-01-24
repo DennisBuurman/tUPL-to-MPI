@@ -32,6 +32,8 @@ def create_plot(thread_count: List[int], times: Dict[str, float], options) -> No
     count: int = 0
 
     for implementation, time in times.items():
+        if len(thread_count) != len(time):
+            print(f"ERROR: {implementation} has a mismatch in thread counts ({len(thread_count)}) and time ({len(time)})", file=sys.stderr)
         plt.plot(thread_count, time, marker=markers[count], label=implementation)
         count += 1
     
@@ -71,12 +73,13 @@ def main():
         tc_list.append(row["Nodes"] * row["Tasks Per Node"])
     df.insert(5, variable, tc_list, True)
     data: Dict = common.process(df, variable)
+    data = common.average_calc_times(data)
     thread_count, times = common.serialize(data)
 
     # Create Plots
     create_plot(thread_count, times, options)
     data = common.process_reverse(df, variable)
-    common.create_confidence_interval(data, options, 8)
+    common.create_confidence_interval(data, options, 8, 2)
 
 if __name__ == "__main__":
     sys.exit(main())
