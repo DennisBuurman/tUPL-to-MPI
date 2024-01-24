@@ -61,6 +61,10 @@ def main():
     args = parser.parse_args()
     options = dict(vars(args))
 
+    # TODO: refine
+    if options["compute-cluster"] == "DAS6":
+        options["file-preamble"] = "EX2-DAS6-RESULTS-"
+    
     file: str = options["datapath"] + "/" + options["file-preamble"] + options["file-date"] + options["file-extension"]
     if not Path(file).is_file():
         print(f"Error: {file} is not a file.", file=sys.stderr)

@@ -132,7 +132,7 @@ def wait_on_queue() -> None:
         grep: str = ""
     time_spent = 0
     pbar = tqdm(total=15*60, desc="Waiting for jobs to finish")
-    while (grep and time_spent < 30*60):
+    while (grep and time_spent < 15*60):
         time.sleep(1)
         time_spent += 1
         pbar.update(1)
@@ -216,14 +216,14 @@ def resubmit_jobs(invalid: List[str], filename: str, retries: int = 4) -> List[s
     """ Resubmits failed configuration. Limited retries.
         Adds waiting calls, including progress bars. """
     it: int = 0
-    while (len(invalid) > 0 or it < retries):
+    while (len(invalid) > 0 and it < retries):
         print(f"> Resubmitting {len(invalid)} jobs")
         for command in invalid:
             subprocess.run(command.split())
         # Wait for jobs to finish up
         old_results = len(glob.glob1(".","*.out"))
         filecount = len(invalid)
-        # progress(filecount, old_results)
+        progress(filecount, old_results)
         wait_on_queue()
         invalid = validate_results(filename)
         print(f"{len(invalid)} invalid results encountered")
@@ -313,7 +313,7 @@ def run_experiment(config: Dict[str, any], options: Dict[str, any], ex_num: int)
     # Wait for jobs to start and finish
     filecount = config_counter * len(variant.split()) * len(size.split()) * len(clusters.split()) * len(dimension.split())
     if not debug:
-        # progress(filecount, old_results) # waits for all jobs to start
+        progress(filecount, old_results) # waits for all jobs to start
         wait_on_queue() # checks run queue for set account name
     print("> Job runs finished!")
     
