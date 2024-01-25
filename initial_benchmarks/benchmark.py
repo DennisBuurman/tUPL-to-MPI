@@ -154,7 +154,7 @@ def write_commands_to_file(command_list: List[str]) -> str:
         arguments: List[str] = parts[1:]
         names: Dict[str, List[str]] = split_arguments(arguments)
         # Remove arguments with singular value
-        template: str = f"{script} --datapath {names['datapath'][0]} --seed {names['seed'][0]} --repeat {names['repeat'][0]} --init-seed {names['init-seed'][0]}"
+        template: str = f"{script} --datapath {names['datapath'][0]} --seed {names['seed'][0]} --repeat {names['repeat'][0]} --init-seed {names['init-seed'][0]} --cluster {names['cluster'][0]}"
         del names["datapath"]
         del names["seed"]
         del names["repeat"]
