@@ -18,6 +18,9 @@
 
 #include <sys/stat.h>
 
+const double CENTRE_MIN = 0.0;
+const double CENTRE_MAX = 10.0;
+
 bool isdir(const char *path)
 {
   struct stat statbuf;
@@ -25,6 +28,22 @@ bool isdir(const char *path)
     return false;
 
   return S_ISDIR(statbuf.st_mode) != 0;
+}
+
+void generate_dataset() {
+    // TODO: random dataset of size 2^24
+}
+
+void upscale_dataset() {
+    // TODO: upscale provided dataset from 2^x to 2^(x+y)
+}
+
+void downscale_dataset() {
+    // TODO: downscale provided dataset from 2^x to 2^(x-y)
+}
+
+void generate_initial_means() {
+    // TODO: generate (set) of initial means to be used during execution
 }
 
 /**
@@ -70,7 +89,76 @@ int main(int argc, char *argv[]) {
 
     std::default_random_engine generator(seed);
 
-    // TODO
+    //uniform randomly generate the means of the clusters in the interval [CENTRE_MIN, CENTRE_MAX]
+    std::uniform_real_distribution<> centerdist(CENTRE_MIN,CENTRE_MAX);
+    for (int i = 0; i < numClusters; i++) {
+        for (int d = 0; d < dataDim; d++) {
+            clusterCenters[i][d] = centerdist(generator);
+        }
+    }
+
+    //initialize the sizes on zero
+    std::fill(clusterSize, clusterSize + numClusters, 0);
+
+    //some output for the user
+    std::cout << std::endl << "Generating " << numDataPoints << " clustered data points, with clusters:" << std::endl;
+    for (int i = 0; i < numClusters; i++) {
+        std::cout << "  " << i << ": (";
+        for (int d = 0; d < dataDim; d++) {
+            std::cout << clusterCenters[i][d];
+            if (d != dataDim-1) 
+                std::cout << ",";
+        }
+        std::cout << "), std: " << clusterStd[i] << std::endl;
+    }
+    std::cout << std::endl;
+
+    //open the output files for the data points and their intended membership
+    std::stringstream ss_data;
+    ss_data << outdir << "/data.txt";
+    std::ofstream datafile(ss_data.str());
+
+    std::stringstream ss_members;
+    ss_members << outdir << "/intended_membership.txt";
+    std::ofstream memberfile(ss_members.str());
+    if (!datafile.is_open() || !memberfile.is_open()) {
+        std::cerr << "Error opening output files in " << outdir << ", terminating..." << std::endl;
+        return 2;
+    }
+
+    //generate the data and write it to the files as we go
+    std::uniform_int_distribution<> clusterdist(0,numClusters-1);
+    for (uint64_t i = 0; i < numDataPoints; i++) {
+        //randomly choose a cluster
+        int cluster = clusterdist(generator);
+        memberfile << i + 1 << " " << cluster << std::endl;
+        clusterSize[cluster]++;
+        
+        //now use normal distribution with specified mean and std to generate point
+        datafile << i + 1 << " ";
+        for (int d = 0; d < dataDim; d++) {
+            std::normal_distribution<> dist(clusterCenters[cluster][d],clusterStd[cluster]);
+            datafile << dist(generator) << " ";
+        }
+        datafile << std::endl;
+    }
+    
+    datafile.close();
+    memberfile.close();
+
+    //print the generated clusters to file
+    std::stringstream ss_centres;
+    ss_centres << argv[5] << "/generated_cluster_centres.txt";
+    std::ofstream centerfile(ss_centres.str());
+
+    for (int i = 0; i < numClusters; i++) {
+        centerfile << i << " ";
+        for (int d = 0; d < dataDim; d++) {
+        centerfile << clusterCenters[i][d] << " ";
+        }
+        centerfile << ", size = " << clusterSize[i] << " , std = " << clusterStd[i] << std::endl;
+    }
+    centerfile.close();
 
     return 0;
 }
