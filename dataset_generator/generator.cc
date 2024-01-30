@@ -21,6 +21,15 @@
 const double CENTRE_MIN = 0.0;
 const double CENTRE_MAX = 10.0;
 
+// Helper functions
+double ** allocate2dArray(int rows, int columns) {
+    double **array = new double *[rows];
+    for (unsigned int i = 0; i < rows; i++) {
+        array[i] = new double[columns];
+    }
+    return array;
+}
+
 bool isdir(const char *path)
 {
   struct stat statbuf;
@@ -30,7 +39,50 @@ bool isdir(const char *path)
   return S_ISDIR(statbuf.st_mode) != 0;
 }
 
-void generate_dataset() {
+/**
+ * Dataset information struct
+ * @param seed: dataset init seed
+ * @param size: dataset size: 2^size
+ * @param numClusters: amount of clusters
+ * @param dataDim: amount of dimensions
+ */
+struct Dataset {
+    int seed;
+    int size;
+    int numClusters;
+    int dataDim;
+    uint64_t numDataPoints;
+
+    double **clusterCenters;  // 2d array of cluster centers
+    double *clusterStd;  //
+    uint64_t *clusterSize;
+
+    Dataset(int seed_, int size_, int numClusters_, int dataDim_) {
+        seed = seed_;
+        size = size_;
+        numClusters = numClusters_;
+        dataDim = dataDim_;
+        numDataPoints = 1 << size;
+
+        // Allocate arrays
+        clusterCenters = allocate2dArray(numClusters, dataDim);
+        clusterStd = new double[numClusters];
+        clusterSize = new uint64_t[numClusters];
+    }
+
+    ~Dataset() {
+        // Deallocate arrays
+        for (unsigned int i = 0; i < numClusters; i++) {
+            delete[] clusterCenters[i];
+        }
+        delete[] clusterCenters;
+        delete[] clusterStd;
+        delete[] clusterSize;
+    }
+};
+
+// Dataset functions
+void generate_dataset(Dataset &data) {
     // TODO: random dataset of size 2^24
 }
 
@@ -76,89 +128,15 @@ int main(int argc, char *argv[]) {
     }
 
     int seed = atoi(argv[1]);
-    int power = atoi(argv[2]);
-    uint64_t numDataPoints = 1 << power;
+    int size = atoi(argv[2]);
     int numClusters = atoi(argv[3]);
     int dataDim = atoi(argv[4]);
 
-    std::cout << "Generating " << numDataPoints << " data points of dimension " << dataDim << " in " << numClusters << " clusters using random seed " << seed << ". Writing output to " << outdir << std::endl;
+    Dataset *data = new Dataset(seed, size, numClusters, dataDim);
+
+    std::cout << "Generating " << data->numDataPoints << " data points of dimension " << data->dataDim << " in " << data->numClusters << " clusters using random seed " << data->seed << ". Writing output to " << outdir << std::endl;
     
-    double clusterCenters[numClusters][dataDim];
-    double clusterStd[numClusters];
-    uint64_t clusterSize[numClusters];
-
-    std::default_random_engine generator(seed);
-
-    //uniform randomly generate the means of the clusters in the interval [CENTRE_MIN, CENTRE_MAX]
-    std::uniform_real_distribution<> centerdist(CENTRE_MIN,CENTRE_MAX);
-    for (int i = 0; i < numClusters; i++) {
-        for (int d = 0; d < dataDim; d++) {
-            clusterCenters[i][d] = centerdist(generator);
-        }
-    }
-
-    //initialize the sizes on zero
-    std::fill(clusterSize, clusterSize + numClusters, 0);
-
-    //some output for the user
-    std::cout << std::endl << "Generating " << numDataPoints << " clustered data points, with clusters:" << std::endl;
-    for (int i = 0; i < numClusters; i++) {
-        std::cout << "  " << i << ": (";
-        for (int d = 0; d < dataDim; d++) {
-            std::cout << clusterCenters[i][d];
-            if (d != dataDim-1) 
-                std::cout << ",";
-        }
-        std::cout << "), std: " << clusterStd[i] << std::endl;
-    }
-    std::cout << std::endl;
-
-    //open the output files for the data points and their intended membership
-    std::stringstream ss_data;
-    ss_data << outdir << "/data.txt";
-    std::ofstream datafile(ss_data.str());
-
-    std::stringstream ss_members;
-    ss_members << outdir << "/intended_membership.txt";
-    std::ofstream memberfile(ss_members.str());
-    if (!datafile.is_open() || !memberfile.is_open()) {
-        std::cerr << "Error opening output files in " << outdir << ", terminating..." << std::endl;
-        return 2;
-    }
-
-    //generate the data and write it to the files as we go
-    std::uniform_int_distribution<> clusterdist(0,numClusters-1);
-    for (uint64_t i = 0; i < numDataPoints; i++) {
-        //randomly choose a cluster
-        int cluster = clusterdist(generator);
-        memberfile << i + 1 << " " << cluster << std::endl;
-        clusterSize[cluster]++;
-        
-        //now use normal distribution with specified mean and std to generate point
-        datafile << i + 1 << " ";
-        for (int d = 0; d < dataDim; d++) {
-            std::normal_distribution<> dist(clusterCenters[cluster][d],clusterStd[cluster]);
-            datafile << dist(generator) << " ";
-        }
-        datafile << std::endl;
-    }
-    
-    datafile.close();
-    memberfile.close();
-
-    //print the generated clusters to file
-    std::stringstream ss_centres;
-    ss_centres << argv[5] << "/generated_cluster_centres.txt";
-    std::ofstream centerfile(ss_centres.str());
-
-    for (int i = 0; i < numClusters; i++) {
-        centerfile << i << " ";
-        for (int d = 0; d < dataDim; d++) {
-        centerfile << clusterCenters[i][d] << " ";
-        }
-        centerfile << ", size = " << clusterSize[i] << " , std = " << clusterStd[i] << std::endl;
-    }
-    centerfile.close();
+    // TODO
 
     return 0;
 }
