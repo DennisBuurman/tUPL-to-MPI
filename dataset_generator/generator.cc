@@ -21,7 +21,6 @@
 const double CENTRE_MIN = 0.0;
 const double CENTRE_MAX = 10.0;
 
-// Helper functions
 double ** allocate2dArray(int rows, int columns) {
     double **array = new double *[rows];
     for (unsigned int i = 0; i < rows; i++) {
@@ -81,21 +80,82 @@ struct Dataset {
     }
 };
 
-// Dataset functions
+
+/**
+ * Uniform randomly generate the means of the clusters in the interval [CENTRE_MIN, CENTRE_MAX]
+ * @param data: Dataset object containing the dataset arrays and data
+ * @param generator: reference to generator object used in sampling
+*/
+void generate_cluster_means(Dataset &data, std::default_random_engine &generator) {
+    std::uniform_real_distribution<> centerdist(CENTRE_MIN,CENTRE_MAX);
+    for (int i = 0; i < data.numClusters; i++) {
+        for (int d = 0; d < data.dataDim; d++) {
+            data.clusterCenters[i][d] = centerdist(generator);
+        }
+    }
+}
+
+
+/**
+ * Uniform randomly generate the standard deviation of the clusters between 1/16 and 1/8 of the width of the interval [CENTRE_MIN, CENTRE_MAX]
+ * @param data: Dataset object containing the dataset arrays and data
+ * @param generator: generator object used in sampling
+*/
+void generate_cluster_std_devs(Dataset &data, std::default_random_engine &generator) {
+    std::uniform_real_distribution<> stddist((CENTRE_MAX-CENTRE_MIN)/16.0,(CENTRE_MAX-CENTRE_MIN)/8.0);
+    for (int i = 0; i < data.numClusters; i++) {
+        data.clusterStd[i] = stddist(generator);
+    }
+}
+
+
+/**
+ * Create a dataset of size 2^24
+ * @param TODO
+*/
 void generate_dataset(Dataset &data) {
-    // TODO: random dataset of size 2^24
+    // TODO
 }
 
+/**
+ * Upscale provided dataset from 2^x to 2^(x+y)
+ * @param TODO
+*/
 void upscale_dataset() {
-    // TODO: upscale provided dataset from 2^x to 2^(x+y)
+    // TODO
 }
 
+/**
+ * Downscale provided dataset from 2^x to 2^(x-y)
+ * @param TODO
+*/
 void downscale_dataset() {
-    // TODO: downscale provided dataset from 2^x to 2^(x-y)
+    // TODO
 }
 
+
+/**
+ * Generate (set) of initial means to be used during execution
+ * @param TODO
+*/
 void generate_initial_means() {
-    // TODO: generate (set) of initial means to be used during execution
+    // TODO
+}
+
+/**
+ * Write data points and their intended membership to corresponding files
+ * @param TODO
+*/
+void write_data() {
+    // TODO
+}
+
+/**
+ * Write generated cluster to file
+ * @param TODO
+*/
+void write_cluster_centers() {
+    // TODO
 }
 
 /**
@@ -132,11 +192,33 @@ int main(int argc, char *argv[]) {
     int numClusters = atoi(argv[3]);
     int dataDim = atoi(argv[4]);
 
+    std::default_random_engine generator(seed);
     Dataset *data = new Dataset(seed, size, numClusters, dataDim);
 
     std::cout << "Generating " << data->numDataPoints << " data points of dimension " << data->dataDim << " in " << data->numClusters << " clusters using random seed " << data->seed << ". Writing output to " << outdir << std::endl;
     
-    // TODO
+    // Generate cluster means and standard deviations
+    generate_cluster_means(*data, generator);
+    generate_cluster_std_devs(*data, generator);
+    std::fill(data->clusterSize, data->clusterSize + data->numClusters, 0); //initialize the sizes on zero
+
+    // Some output for the user
+    std::cout << std::endl << "Generating " << data->numDataPoints << " clustered data points, with clusters:" << std::endl;
+    for (int i = 0; i < numClusters; i++) {
+        std::cout << "  " << i << ": (";
+        for (int d = 0; d < dataDim; d++) {
+            std::cout << data->clusterCenters[i][d];
+            if (d != dataDim-1) 
+                std::cout << ",";
+        }
+        std::cout << "), std: " << data->clusterStd[i] << std::endl;
+    }
+    std::cout << std::endl;
+
+    // Generate data
+
+
+    delete data;
 
     return 0;
 }
