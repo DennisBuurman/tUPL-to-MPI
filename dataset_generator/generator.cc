@@ -53,8 +53,10 @@ struct Dataset {
     uint64_t numDataPoints;
 
     double **clusterCenters;  // 2d array of cluster centers
-    double *clusterStd;  //
-    uint64_t *clusterSize;
+    double *clusterStd;  // array containing std dev of each cluster
+    uint64_t *clusterSize;  // array containing amount of points in each cluster
+    uint16_t *membership;  // array denoting intended cluster of datapoint at same index
+    double **datapoints;  // array containing the datapoints
 
     Dataset(int seed_, int size_, int numClusters_, int dataDim_) {
         seed = seed_;
@@ -67,6 +69,8 @@ struct Dataset {
         clusterCenters = allocate2dArray(numClusters, dataDim);
         clusterStd = new double[numClusters];
         clusterSize = new uint64_t[numClusters];
+        membership = new uint16_t[numDataPoints];
+        datapoints = allocate2dArray(numDataPoints, dataDim);
     }
 
     ~Dataset() {
@@ -77,9 +81,12 @@ struct Dataset {
         delete[] clusterCenters;
         delete[] clusterStd;
         delete[] clusterSize;
+        delete[] membership;
+        for (unsigned int i = 0; i < numDataPoints; i++) {
+            delete[] datapoints[i];
+        }
     }
 };
-
 
 /**
  * Uniform randomly generate the means of the clusters in the interval [CENTRE_MIN, CENTRE_MAX]
@@ -95,7 +102,6 @@ void generate_cluster_means(Dataset &data, std::default_random_engine &generator
     }
 }
 
-
 /**
  * Uniform randomly generate the standard deviation of the clusters between 1/16 and 1/8 of the width of the interval [CENTRE_MIN, CENTRE_MAX]
  * @param data: Dataset object containing the dataset arrays and data
@@ -108,21 +114,39 @@ void generate_cluster_std_devs(Dataset &data, std::default_random_engine &genera
     }
 }
 
-
 /**
- * Create a dataset of size 2^24
- * @param TODO
+ * Create a dataset using the provided dataset object and random generator 
+ * @param data: Dataset object containing the dataset arrays and data
+ * @param generator: generator object used in sampling
 */
-void generate_dataset(Dataset &data) {
-    // TODO
+void generate_dataset(Dataset &data, std::default_random_engine &generator) {
+    int cluster; // cluster number to put generated data point in
+
+    std::uniform_int_distribution<> clusterdist(0, data.numClusters-1);
+    for (uint64_t i = 0; i < data.numDataPoints; i++) {
+        // Randomly choose a cluster
+        cluster = clusterdist(generator);
+        data.membership[i] = cluster;
+        data.clusterSize[cluster]++;
+
+        // Generate point
+        for (int d = 0; d < data.dataDim; d++) {
+            std::normal_distribution<> dist(data.clusterCenters[cluster][d], data.clusterStd[cluster]);
+            data.datapoints[i][d] = dist(generator);
+        }
+    }
 }
 
 /**
  * Upscale provided dataset from 2^x to 2^(x+y)
  * @param TODO
 */
-void upscale_dataset() {
+Dataset * upscale_dataset(const Dataset &x, int y) {
+    Dataset *data = new Dataset(x.seed, x.size, x.numClusters, x.dataDim);
+
     // TODO
+
+    return data;
 }
 
 /**
@@ -144,18 +168,69 @@ void generate_initial_means() {
 
 /**
  * Write data points and their intended membership to corresponding files
- * @param TODO
+ * @param data: dataset object containing data to write
+ * @param outdir: output file directory
 */
-void write_data() {
-    // TODO
+int write_data(Dataset &data, const char *outdir) {
+    // Open data file
+    std::stringstream ss_data;
+    ss_data << outdir << "/data.txt";
+    std::ofstream datafile(ss_data.str());
+
+    // Open membership file
+    std::stringstream ss_members;
+    ss_members << outdir << "/intended_membership.txt";
+    std::ofstream memberfile(ss_members.str());
+
+    // Check if files are open
+    if (!datafile.is_open() || !memberfile.is_open()) {
+        std::cerr << "Error opening output files in " << outdir << ", terminating..." << std::endl;
+        return 2;
+    }
+
+    // TODO: write data to files
+    
+    // Write data points
+    // datafile << i + 1 << " ";
+    // datafile << dist(generator) << " ";
+    // datafile << endl;
+
+    // Write intended membership
+    // memberfile << i + 1 << " " << cluster << endl;
+
+    datafile.close();
+    memberfile.close();
+    return 0;
 }
 
 /**
  * Write generated cluster to file
- * @param TODO
+ * @param data: dataset object containing data to write
+ * @param outdir: output file directory
 */
-void write_cluster_centers() {
-    // TODO
+int write_cluster_centers(Dataset &data, const char *outdir) {
+    // Open cluster center file
+    std::stringstream ss_centres;
+    ss_centres << outdir << "/generated_cluster_centres.txt";
+    std::ofstream centerfile(ss_centres.str());
+
+    // Check if file is open
+    if (!centerfile.is_open()) {
+        std::cerr << "Error opening cluster centre file in " << outdir << ", terminating..." << std::endl;
+        return 2;
+    }
+
+    // Write cluster centres to file
+    for (int i = 0; i < data.numClusters; i++) {
+        centerfile << i << " ";
+        for (int d = 0; d < data.dataDim; d++) {
+            centerfile << data.clusterCenters[i][d] << " ";
+        }
+        centerfile << ", size = " << data.clusterSize[i] << " , std = " << data.clusterStd[i] << std::endl;
+    }
+
+    centerfile.close();
+    return 0;
 }
 
 /**
@@ -215,7 +290,8 @@ int main(int argc, char *argv[]) {
     }
     std::cout << std::endl;
 
-    // Generate data
+    // Generate and write data
+    // TODO
 
 
     delete data;
