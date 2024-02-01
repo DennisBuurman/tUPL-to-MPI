@@ -21,7 +21,7 @@
 const double CENTRE_MIN = 0.0;
 const double CENTRE_MAX = 10.0;
 
-double ** allocate2dArray(const int rows, const int columns) {
+double ** allocate2dArray(const unsigned int rows, const unsigned int columns) {
     double **array = new double *[rows];
     for (unsigned int i = 0; i < rows; i++) {
         array[i] = new double[columns];
@@ -48,8 +48,8 @@ bool isdir(const char *path)
 struct Dataset {
     int seed;
     int size;
-    int numClusters;
-    int dataDim;
+    unsigned int numClusters;
+    unsigned int dataDim;
     uint64_t numDataPoints;
 
     double **clusterCenters;  // 2d array of cluster centers
@@ -95,8 +95,8 @@ struct Dataset {
 */
 void generate_cluster_means(Dataset &data, std::default_random_engine &generator) {
     std::uniform_real_distribution<> centerdist(CENTRE_MIN,CENTRE_MAX);
-    for (int i = 0; i < data.numClusters; i++) {
-        for (int d = 0; d < data.dataDim; d++) {
+    for (unsigned int i = 0; i < data.numClusters; i++) {
+        for (unsigned int d = 0; d < data.dataDim; d++) {
             data.clusterCenters[i][d] = centerdist(generator);
         }
     }
@@ -109,7 +109,7 @@ void generate_cluster_means(Dataset &data, std::default_random_engine &generator
 */
 void generate_cluster_std_devs(Dataset &data, std::default_random_engine &generator) {
     std::uniform_real_distribution<> stddist((CENTRE_MAX-CENTRE_MIN)/16.0,(CENTRE_MAX-CENTRE_MIN)/8.0);
-    for (int i = 0; i < data.numClusters; i++) {
+    for (unsigned int i = 0; i < data.numClusters; i++) {
         data.clusterStd[i] = stddist(generator);
     }
 }
@@ -130,7 +130,7 @@ void generate_dataset(Dataset &data, std::default_random_engine &generator) {
         data.clusterSize[cluster]++;
 
         // Generate point
-        for (int d = 0; d < data.dataDim; d++) {
+        for (unsigned int d = 0; d < data.dataDim; d++) {
             std::normal_distribution<> dist(data.clusterCenters[cluster][d], data.clusterStd[cluster]);
             data.datapoints[i][d] = dist(generator);
         }
@@ -194,7 +194,7 @@ int write_data(Dataset &data, const char *outdir) {
     for (uint64_t i = 0; i < data.numDataPoints; i++) {
         // Write point i
         datafile << i + 1 << " ";
-        for (int d = 0; d < data.dataDim; d++) {
+        for (unsigned int d = 0; d < data.dataDim; d++) {
             datafile << data.datapoints[i][d] << " ";
         }
         datafile << std::endl;
@@ -225,9 +225,9 @@ int write_cluster_centers(Dataset &data, const char *outdir) {
     }
 
     // Write cluster centres to file
-    for (int i = 0; i < data.numClusters; i++) {
+    for (unsigned int i = 0; i < data.numClusters; i++) {
         centerfile << i << " ";
-        for (int d = 0; d < data.dataDim; d++) {
+        for (unsigned int d = 0; d < data.dataDim; d++) {
             centerfile << data.clusterCenters[i][d] << " ";
         }
         centerfile << ", size = " << data.clusterSize[i] << " , std = " << data.clusterStd[i] << std::endl;
