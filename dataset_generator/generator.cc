@@ -21,7 +21,7 @@
 const double CENTRE_MIN = 0.0;
 const double CENTRE_MAX = 10.0;
 
-double ** allocate2dArray(int rows, int columns) {
+double ** allocate2dArray(const int rows, const int columns) {
     double **array = new double *[rows];
     for (unsigned int i = 0; i < rows; i++) {
         array[i] = new double[columns];
@@ -141,7 +141,7 @@ void generate_dataset(Dataset &data, std::default_random_engine &generator) {
  * Upscale provided dataset from 2^x to 2^(x+y)
  * @param TODO
 */
-Dataset * upscale_dataset(const Dataset &x, int y) {
+Dataset * upscale_dataset(const Dataset &x, const int y) {
     Dataset *data = new Dataset(x.seed, x.size, x.numClusters, x.dataDim);
 
     // TODO
@@ -153,16 +153,19 @@ Dataset * upscale_dataset(const Dataset &x, int y) {
  * Downscale provided dataset from 2^x to 2^(x-y)
  * @param TODO
 */
-void downscale_dataset() {
+Dataset * downscale_dataset(const Dataset &x, const int y) {
+    Dataset *data = new Dataset(x.seed, x.size, x.numClusters, x.dataDim);
+    
     // TODO
-}
 
+    return data;
+}
 
 /**
  * Generate (set) of initial means to be used during execution
  * @param TODO
 */
-void generate_initial_means() {
+void generate_initial_means(Dataset &data) {
     // TODO
 }
 
@@ -188,15 +191,16 @@ int write_data(Dataset &data, const char *outdir) {
         return 2;
     }
 
-    // TODO: write data to files
-    
-    // Write data points
-    // datafile << i + 1 << " ";
-    // datafile << dist(generator) << " ";
-    // datafile << endl;
-
-    // Write intended membership
-    // memberfile << i + 1 << " " << cluster << endl;
+    for (uint64_t i = 0; i < data.numDataPoints; i++) {
+        // Write point i
+        datafile << i + 1 << " ";
+        for (int d = 0; d < data.dataDim; d++) {
+            datafile << data.datapoints[i][d] << " ";
+        }
+        datafile << std::endl;
+        // Write intended membership of point i
+        memberfile << i + 1 << " " << data.membership[i] << std::endl;
+    }
 
     datafile.close();
     memberfile.close();
@@ -262,10 +266,10 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    int seed = atoi(argv[1]);
-    int size = atoi(argv[2]);
-    int numClusters = atoi(argv[3]);
-    int dataDim = atoi(argv[4]);
+    const int seed = atoi(argv[1]);
+    const int size = atoi(argv[2]);
+    const int numClusters = atoi(argv[3]);
+    const int dataDim = atoi(argv[4]);
 
     std::default_random_engine generator(seed);
     Dataset *data = new Dataset(seed, size, numClusters, dataDim);
@@ -291,8 +295,10 @@ int main(int argc, char *argv[]) {
     std::cout << std::endl;
 
     // Generate and write data
-    // TODO
-
+    // TODO: standard size dataset (size 24) -> up|downscale -> initial means
+    generate_dataset(*data, generator);
+    write_data(*data, outdir);
+    write_cluster_centers(*data, outdir);
 
     delete data;
 
