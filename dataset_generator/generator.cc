@@ -21,7 +21,7 @@
 
 const double CENTRE_MIN = 0.0;
 const double CENTRE_MAX = 10.0;
-const uint8_t DEFAULT_CLUSTER_SIZE = 24;
+const uint8_t DEFAULT_SIZE = 24;
 
 bool isdir(const char *path)
 {
@@ -130,20 +130,29 @@ void generate_dataset(Dataset &dataset, std::default_random_engine &generator) {
  * @param y: power increase of dataset size
 */
 void upscale_dataset(Dataset &dataset, const int y) {
-    const int x = dataset.size;
-    const uint64_t new_numDataPoints = 1 << x+y; // equivalent to 2^(x+y)
-    const uint64_t difference = new_numDataPoints - dataset.numDataPoints;
-
     // Allocate new datapoints
-    // TODO: duplicate dataset for each power increase
+    for (int i = 0; i < y; i++) {
+        // Duplicate dataset
+        for (uint64_t j = 0; j < dataset.numDataPoints; j++) {
+            dataset.clusterCenters.push_back(dataset.clusterCenters[j]);
+            dataset.clusterStd.push_back(dataset.clusterStd[j]);
+            dataset.membership.push_back(dataset.membership[j]);
+            dataset.datapoints.push_back(dataset.datapoints[j]);
+        }
+        // Update dataset sizes
+        dataset.size++;
+        dataset.numDataPoints <<= 1;
+    }
 }
 
 /**
  * Downscale provided dataset from 2^x to 2^(x-y)
- * @param TODO
+ * @param dataset: Dataset object containing the dataset arrays and data
+ * @param y: power decrease of dataset size
 */
 void downscale_dataset(Dataset &dataset, const int y) {
-    // TODO
+    std::cout << "Not implemented yet!" << std::endl;
+    // Question: how to reduce size below DEFAULT_SIZE?
 }
 
 /**
@@ -255,9 +264,10 @@ int main(int argc, char *argv[]) {
     const int size = atoi(argv[2]);  // TODO: accept multiple sizes and generate in one go
     const int numClusters = atoi(argv[3]);
     const int dataDim = atoi(argv[4]);
+    const int size_difference = size - DEFAULT_SIZE;
 
     std::default_random_engine generator(seed);
-    Dataset *dataset = new Dataset(seed, DEFAULT_CLUSTER_SIZE, numClusters, dataDim);
+    Dataset *dataset = new Dataset(seed, DEFAULT_SIZE, numClusters, dataDim);
 
     std::cout << "Generating " << dataset->numDataPoints << " data points of dimension " << dataset->dataDim << " in " << dataset->numClusters << " clusters using random seed " << dataset->seed << ". Writing output to " << outdir << std::endl;
     
@@ -280,7 +290,11 @@ int main(int argc, char *argv[]) {
 
     // Generate default dataset and upscale/downscale it
     generate_dataset(*dataset, generator);
-    
+    if (size_difference > 0) {
+        upscale_dataset(*dataset, size_difference);
+    } else if (size_difference < 0) {
+        downscale_dataset(*dataset, size_difference);
+    }
 
     // Write dataset to files
     write_data(*dataset, outdir);
