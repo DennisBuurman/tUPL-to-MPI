@@ -15,20 +15,13 @@
 #include <random>
 #include <algorithm>
 #include <cmath>
+#include <vector>
 
 #include <sys/stat.h>
 
 const double CENTRE_MIN = 0.0;
 const double CENTRE_MAX = 10.0;
 const uint8_t DEFAULT_CLUSTER_SIZE = 24;
-
-double ** allocate2dArray(const unsigned int rows, const unsigned int columns) {
-    double **array = new double *[rows];
-    for (unsigned int i = 0; i < rows; i++) {
-        array[i] = new double[columns];
-    }
-    return array;
-}
 
 bool isdir(const char *path)
 {
@@ -53,11 +46,11 @@ struct Dataset {
     unsigned int dataDim;
     uint64_t numDataPoints;
 
-    double **clusterCenters;  // 2d array of cluster centers
-    double *clusterStd;  // array containing std dev of each cluster
-    uint64_t *clusterSize;  // array containing amount of points in each cluster
-    uint16_t *membership;  // array denoting intended cluster of datapoint at same index
-    double **datapoints;  // array containing the datapoints
+    std::vector<std::vector<double>> clusterCenters;  // 2d array of cluster centers
+    std::vector<double> clusterStd;  // array containing std dev of each cluster
+    std::vector<uint64_t> clusterSize;  // array containing amount of points in each cluster
+    std::vector<uint16_t> membership;  // array denoting intended cluster of datapoint at same index
+    std::vector<std::vector<double>> datapoints;  // array containing the datapoints
 
     Dataset(const int seed_, const int size_, const int numClusters_, const int dataDim_) {
         seed = seed_;
@@ -66,26 +59,11 @@ struct Dataset {
         dataDim = dataDim_;
         numDataPoints = 1 << size;
 
-        // Allocate arrays
-        clusterCenters = allocate2dArray(numClusters, dataDim);
-        clusterStd = new double[numClusters];
-        clusterSize = new uint64_t[numClusters];
-        membership = new uint16_t[numDataPoints];
-        datapoints = allocate2dArray(numDataPoints, dataDim);
+        clusterSize.insert(clusterSize.begin(), numClusters, 0);
     }
 
     ~Dataset() {
-        // Deallocate arrays
-        for (unsigned int i = 0; i < numClusters; i++) {
-            delete[] clusterCenters[i];
-        }
-        delete[] clusterCenters;
-        delete[] clusterStd;
-        delete[] clusterSize;
-        delete[] membership;
-        for (unsigned int i = 0; i < numDataPoints; i++) {
-            delete[] datapoints[i];
-        }
+
     }
 };
 
@@ -96,10 +74,14 @@ struct Dataset {
 */
 void generate_cluster_means(Dataset &dataset, std::default_random_engine &generator) {
     std::uniform_real_distribution<> centerdist(CENTRE_MIN,CENTRE_MAX);
+    std::vector<double> center;
+
     for (unsigned int i = 0; i < dataset.numClusters; i++) {
+        center.clear();
         for (unsigned int d = 0; d < dataset.dataDim; d++) {
-            dataset.clusterCenters[i][d] = centerdist(generator);
+            center.push_back(centerdist(generator));
         }
+        dataset.clusterCenters.push_back(center);
     }
 }
 
@@ -110,8 +92,9 @@ void generate_cluster_means(Dataset &dataset, std::default_random_engine &genera
 */
 void generate_cluster_std_devs(Dataset &dataset, std::default_random_engine &generator) {
     std::uniform_real_distribution<> stddist((CENTRE_MAX-CENTRE_MIN)/16.0,(CENTRE_MAX-CENTRE_MIN)/8.0);
+
     for (unsigned int i = 0; i < dataset.numClusters; i++) {
-        dataset.clusterStd[i] = stddist(generator);
+        dataset.clusterStd.push_back(stddist(generator));
     }
 }
 
@@ -122,25 +105,29 @@ void generate_cluster_std_devs(Dataset &dataset, std::default_random_engine &gen
 */
 void generate_dataset(Dataset &dataset, std::default_random_engine &generator) {
     int cluster; // cluster number to put generated data point in
-
+    std::vector<double> point; // vector containing point
     std::uniform_int_distribution<> clusterdist(0, dataset.numClusters-1);
+
     for (uint64_t i = 0; i < dataset.numDataPoints; i++) {
         // Randomly choose a cluster
         cluster = clusterdist(generator);
-        dataset.membership[i] = cluster;
+        dataset.membership.push_back(cluster);
         dataset.clusterSize[cluster]++;
 
         // Generate point
+        point.clear();
         for (unsigned int d = 0; d < dataset.dataDim; d++) {
             std::normal_distribution<> dist(dataset.clusterCenters[cluster][d], dataset.clusterStd[cluster]);
-            dataset.datapoints[i][d] = dist(generator);
+            point.push_back(dist(generator));
         }
+        dataset.datapoints.push_back(point);
     }
 }
 
 /**
  * Upscale provided dataset from 2^x to 2^(x+y)
- * @param TODO
+ * @param dataset: Dataset object containing the dataset arrays and data
+ * @param y: power increase of dataset size
 */
 void upscale_dataset(Dataset &dataset, const int y) {
     const int x = dataset.size;
@@ -148,9 +135,7 @@ void upscale_dataset(Dataset &dataset, const int y) {
     const uint64_t difference = new_numDataPoints - dataset.numDataPoints;
 
     // Allocate new datapoints
-    for (uint64_t i = dataset.numDataPoints; i < new_numDataPoints; i++) {
-
-    }
+    // TODO: duplicate dataset for each power increase
 }
 
 /**
@@ -267,7 +252,7 @@ int main(int argc, char *argv[]) {
     }
 
     const int seed = atoi(argv[1]);
-    const int size = atoi(argv[2]);
+    const int size = atoi(argv[2]);  // TODO: accept multiple sizes and generate in one go
     const int numClusters = atoi(argv[3]);
     const int dataDim = atoi(argv[4]);
 
@@ -279,7 +264,6 @@ int main(int argc, char *argv[]) {
     // Generate cluster means and standard deviations
     generate_cluster_means(*dataset, generator);
     generate_cluster_std_devs(*dataset, generator);
-    std::fill(dataset->clusterSize, dataset->clusterSize + dataset->numClusters, 0); //initialize the sizes on zero
 
     // Some output for the user
     std::cout << std::endl << "Generating " << dataset->numDataPoints << " clustered data points, with clusters:" << std::endl;
