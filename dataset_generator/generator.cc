@@ -46,11 +46,12 @@ struct Dataset {
     unsigned int dataDim;
     uint64_t numDataPoints;
 
-    std::vector<std::vector<double>> clusterCenters;  // 2d array of cluster centers
-    std::vector<double> clusterStd;  // array containing std dev of each cluster
-    std::vector<uint64_t> clusterSize;  // array containing amount of points in each cluster
-    std::vector<uint16_t> membership;  // array denoting intended cluster of datapoint at same index
-    std::vector<std::vector<double>> datapoints;  // array containing the datapoints
+    std::vector<std::vector<double>> clusterCenters;  // 2d vector of cluster centers
+    std::vector<double> clusterStd;  // vector containing std dev of each cluster
+    std::vector<uint64_t> clusterSize;  // vector containing amount of points in each cluster
+    std::vector<uint16_t> membership;  // vector denoting intended cluster of datapoint at same index
+    std::vector<std::vector<double>> datapoints;  // vector containing the datapoints
+    std::vector<double> initialMeans;  // vector containing initial means
 
     Dataset(const int seed_, const int size_, const int numClusters_, const int dataDim_) {
         seed = seed_;
@@ -66,6 +67,59 @@ struct Dataset {
 
     }
 };
+
+void print_dataset(Dataset &data) {
+    int limit = 10;
+    std::cout << "********************" << std::endl;
+    std::cout << "Seed:      " << data.seed << std::endl;
+    std::cout << "Size:      " << data.size << " (" << data.numDataPoints << ")" << std::endl;
+    std::cout << "Clusters:  " << data.numClusters << std::endl;
+    std::cout << "Dimension: " << data.dataDim << std::endl;
+    std::cout << std::endl;
+    std::cout << "Cluster Centres: " << "(" << data.clusterCenters.size() << ")" << std::endl;
+    for (unsigned int i = 0; i < data.clusterCenters.size(); i++) {
+        if (i >= limit) 
+            break;
+        std::cout << i << ": (";
+        for (unsigned int j = 0; j < data.clusterCenters[i].size(); j++) {
+           std::cout << data.clusterCenters[i][j] << ", ";
+        }
+        std::cout << ")" << std::endl;
+    }
+    std::cout << std::endl;
+    std::cout << "Cluster Standard Deviations: " << "(" << data.clusterStd.size() << ")" << std::endl;
+    for (unsigned int i = 0; i < data.clusterStd.size(); i++) {
+        if (i >= limit) 
+            break;
+        std::cout << i << ": " << data.clusterStd[i] << std::endl;
+    }
+    std::cout << std::endl;
+    std::cout << "Cluster Sizes: " << "(" << data.clusterSize.size() << ")" << std::endl;
+    for (unsigned int i = 0; i < data.clusterSize.size(); i++) {
+        if (i >= limit) 
+            break;
+        std::cout << i << ": " << data.clusterSize[i] << std::endl;
+    }
+    std::cout << std::endl;
+    std::cout << "Memberships: " << "(" << data.membership.size() << ")" << std::endl;
+    for (unsigned int i = 0; i < data.membership.size(); i++) {
+        if (i >= limit) 
+            break;
+        std::cout << i << ": " << data.membership[i] << std::endl;
+    }
+    std::cout << std::endl;
+    std::cout << "Datapoints: " << "(" << data.datapoints.size() << ")" << std::endl;
+    for (unsigned int i = 0; i < data.datapoints.size(); i++) {
+        if (i >= limit) 
+            break;
+        std::cout << i << ": (";
+        for (unsigned int j = 0; j < data.datapoints[i].size(); j++) {
+            std::cout << data.datapoints[i][j] << ", ";
+        }
+        std::cout << ")" << std::endl;
+    }
+    std::cout << "********************" << std::endl;
+}
 
 /**
  * Uniform randomly generate the means of the clusters in the interval [CENTRE_MIN, CENTRE_MAX]
@@ -138,6 +192,7 @@ void upscale_dataset(Dataset &dataset, const int y) {
             dataset.clusterStd.push_back(dataset.clusterStd[j]);
             dataset.membership.push_back(dataset.membership[j]);
             dataset.datapoints.push_back(dataset.datapoints[j]);
+            dataset.clusterSize[dataset.membership[j]]++;
         }
         // Update dataset sizes
         dataset.size++;
@@ -146,7 +201,8 @@ void upscale_dataset(Dataset &dataset, const int y) {
 }
 
 /**
- * Downscale provided dataset from 2^x to 2^(x-y)
+ * Downscale provided dataset from 2^x to 2^(x-y).
+ * Only needed to decrease size below DEFAULT_SIZE
  * @param dataset: Dataset object containing the dataset arrays and data
  * @param y: power decrease of dataset size
 */
@@ -232,6 +288,48 @@ int write_cluster_centers(Dataset &dataset, const char *outdir) {
 }
 
 /**
+ * Write generated cluster to file
+ * @param dataset: dataset object containing data to write
+ * @param outdir: output file directory
+*/
+int write_initial_means(Dataset &dataset, const char *outdir) {
+    // Open initial means file
+    std::stringstream ss_means;
+    ss_means << outdir << "/initial_means.txt";
+    std::ofstream meansfile(ss_means.str());
+
+    // Check if file is open
+    if (!meansfile.is_open()) {
+        std::cerr << "Error opening cluster centre file in " << outdir << ", terminating..." << std::endl;
+        return 2;
+    }
+
+    // Write cluster centres to file
+    // TODO
+
+    meansfile.close();
+    return 0;
+}
+
+/**
+ * Function for testing the dataset generations.
+ * Does running this function 2 times result in identical datasets? (should be yes)
+*/
+void test() {
+    int seed = 971, size = 8, clusters = 4, dim = 4, upscale = 1;
+
+    std::default_random_engine g(seed);
+    Dataset *d = new Dataset(seed, size, clusters, dim);
+    generate_cluster_means(*d, g);
+    generate_cluster_std_devs(*d, g);
+    generate_dataset(*d, g);
+    upscale_dataset(*d, upscale);
+
+    print_dataset(*d);
+    delete d;
+}
+
+/**
  * Generates points in randomly placed clusters using normal distribution.
  * Points are generated in set size and duplicated for larger sized databases.
  * 
@@ -266,6 +364,10 @@ int main(int argc, char *argv[]) {
     const int dataDim = atoi(argv[4]);
     const int size_difference = size - DEFAULT_SIZE;
 
+    // // DEBUGGING ONLY
+    // test();
+    // return 0;
+
     std::default_random_engine generator(seed);
     Dataset *dataset = new Dataset(seed, DEFAULT_SIZE, numClusters, dataDim);
 
@@ -295,6 +397,7 @@ int main(int argc, char *argv[]) {
     } else if (size_difference < 0) {
         downscale_dataset(*dataset, size_difference);
     }
+    generate_initial_means(*dataset);
 
     // Write dataset to files
     write_data(*dataset, outdir);
