@@ -30,10 +30,13 @@ date: str = datetime.today().strftime("%d-%m-%Y")
 ex1_config: Dict[str, any] = {
     "seed": "971",
     "variant": "own own_inc own_loc own_inc_loc",
-    "size": "20 21 22 23 24 25 26 27 28",
+    # "size": "20 21 22 23 24 25 26 27 28",
+    # "size": "24 25 26 27 28",
+    "size": "24",
     "clusters": [4],
     "dimension": [4],
-    "nodes": [[8]],
+    # "nodes": [[8]],
+    "nodes": [[1]],
     "ntasks-per-node": [[8]],
     "repeat": "10"
 }

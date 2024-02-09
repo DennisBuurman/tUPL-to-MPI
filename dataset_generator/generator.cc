@@ -38,7 +38,7 @@ bool isdir(const char *path)
  * @param size: dataset size: 2^size
  * @param numClusters: amount of clusters
  * @param dataDim: amount of dimensions
- */
+*/
 struct Dataset {
     int seed;
     int size;
@@ -49,9 +49,9 @@ struct Dataset {
     std::vector<std::vector<double>> clusterCenters;  // 2d vector of cluster centers
     std::vector<double> clusterStd;  // vector containing std dev of each cluster
     std::vector<uint64_t> clusterSize;  // vector containing amount of points in each cluster
-    std::vector<uint16_t> membership;  // vector denoting intended cluster of datapoint at same index
+    std::vector<uint32_t> membership;  // vector denoting intended cluster of datapoint at same index
     std::vector<std::vector<double>> datapoints;  // vector containing the datapoints
-    std::vector<double> initialMeans;  // vector containing initial means
+    std::vector<uint64_t> initialMeans;  // vector containing indexes of initial means
 
     Dataset(const int seed_, const int size_, const int numClusters_, const int dataDim_) {
         seed = seed_;
@@ -68,6 +68,11 @@ struct Dataset {
     }
 };
 
+
+/**
+ * Prints a given dataset
+ * @param data: dataset to print
+*/
 void print_dataset(Dataset &data) {
     int limit = 10;
     std::cout << "********************" << std::endl;
@@ -184,6 +189,7 @@ void generate_dataset(Dataset &dataset, std::default_random_engine &generator) {
  * @param y: power increase of dataset size
 */
 void upscale_dataset(Dataset &dataset, const int y) {
+    std::cout << "Upscaling dataset from size " << dataset.size << " to size " << dataset.size + y << std::endl;
     // Allocate new datapoints
     for (int i = 0; i < y; i++) {
         // Duplicate dataset
@@ -207,16 +213,61 @@ void upscale_dataset(Dataset &dataset, const int y) {
  * @param y: power decrease of dataset size
 */
 void downscale_dataset(Dataset &dataset, const int y) {
-    std::cout << "Not implemented yet!" << std::endl;
+    std::cout << "Downscaling dataset not implemented yet!" << std::endl;
     // Question: how to reduce size below DEFAULT_SIZE?
 }
 
 /**
- * Generate (set) of initial means to be used during execution
- * @param TODO
+ * Euclidean distance between two points.
+ * Dimensions between points x and y need to be identical.
+ * @param x: point 1
+ * @param y: point 2
+*/
+double distance(std::vector<double> x, std::vector<double> y) {
+    double d = 0;
+    if (x.size() != y.size()) {
+        std::cerr << "WARNING: points x (" << x.size() << ") and y (" << y.size() << ") are of different dimension. " << std::endl;
+        return 0;
+    }
+    for (unsigned int i = 0; i < x.size(); i++) {
+        d += (x[i] - y[i]) * (x[i] - y[i]);
+    }
+    return sqrt(d);
+}
+
+/**
+ * Generate (set) of initial means to be used during execution.
+ * This function uses the k-means++ method to generate initial means.
+ * Initial means are saved in initial_means vector of dataset.
+ * Based on implementation from https://www.geeksforgeeks.org/ml-k-means-algorithm/.
+ * 
+ * @param dataset: Dataset object containing the dataset arrays and data
 */
 void generate_initial_means(Dataset &dataset) {
-    // TODO
+    uint64_t centroid_index, max_index;
+    double d, d_max = -1; // distance between 2 points
+
+    // 1. Randomly select first centroid from all data points
+    std::random_device rand_dev;
+    std::mt19937 generator(rand_dev());
+    std::uniform_int_distribution<uint64_t> dist(0, dataset.numDataPoints);
+    centroid_index = dist(generator);
+    dataset.initialMeans.push_back(centroid_index);
+
+    // TODO: finish
+    // Repeat until k cluster centers are assigned
+    for (int k = 0; k < dataset.numClusters; k++) {
+        // For each data point, calculate distance from nearest, previously chosen centroid
+        // Select point with maximum distance from previous centroids as next centroid
+        for (unsigned int i = 0; i < dataset.datapoints.size(); i++) {
+            d = distance(dataset.datapoints[centroid_index], dataset.datapoints[i]); 
+            if (d > d_max) {
+                max_index = i;
+                d_max = d;
+            }
+        }
+    }
+
 }
 
 /**
@@ -399,9 +450,15 @@ int main(int argc, char *argv[]) {
     }
     generate_initial_means(*dataset);
 
+    if (size != dataset->size) {
+        std::cerr << "ERROR: size " << size << " smaller than dataset size " << dataset->size << std::endl;
+        return 1;
+    }
+
     // Write dataset to files
     write_data(*dataset, outdir);
     write_cluster_centers(*dataset, outdir);
+    write_initial_means(*dataset, outdir);
 
     delete dataset;
 

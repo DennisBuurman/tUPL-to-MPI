@@ -12,7 +12,8 @@ from common import DataSetRegistry
 import sys
 from argparse import ArgumentParser
 
-generator_exec = Path("..") / "generator" / "generator"
+# generator_exec = Path("..") / "generator" / "generator"
+generator_exec = Path("../../dataset_generator/generator")
 
 
 def print_query(params):
