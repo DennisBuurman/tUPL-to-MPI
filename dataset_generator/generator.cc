@@ -22,8 +22,10 @@
 
 const double CENTRE_MIN = 0.0;
 const double CENTRE_MAX = 10.0;
-const uint8_t MINIMUM_SIZE = 24;
 const double DOUBLE_MAX = std::numeric_limits<double>::max();
+
+const uint8_t MINIMUM_SIZE = 24;
+const uint8_t MEAN_SETS = 10;
 
 bool isdir(const char *path)
 {
@@ -356,26 +358,33 @@ int write_cluster_centers(Dataset &dataset, const char *outdir) {
 }
 
 /**
- * Write generated cluster to file
+ * Write generated means to files
  * @param dataset: dataset object containing data to write
  * @param outdir: output file directory
 */
 int write_initial_means(Dataset &dataset, const char *outdir) {
-    // Open initial means file
     std::stringstream ss_means;
-    ss_means << outdir << "/initial_means.txt";
-    std::ofstream meansfile(ss_means.str());
+    std::ofstream meansfile;
 
-    // Check if file is open
-    if (!meansfile.is_open()) {
-        std::cerr << "Error opening cluster centre file in " << outdir << ", terminating..." << std::endl;
-        return 2;
+    for (int i = 0; i < MEAN_SETS; i++) {
+        // Open initial means file corresponding to index + 1
+        ss_means.clear();
+        ss_means << outdir << "/initial_means" << i+1 << ".txt";
+        meansfile.open(ss_means.str());
+
+        // Check if file is open
+        if (!meansfile.is_open()) {
+            std::cerr << "Error opening cluster centre file in " << outdir << ", terminating..." << std::endl;
+            return 2;
+        }
+
+        // Write cluster centres to file
+        // TODO
+        
+        meansfile.close();
+        meansfile.clear();
     }
 
-    // Write cluster centres to file
-    // TODO
-
-    meansfile.close();
     return 0;
 }
 
@@ -470,7 +479,9 @@ int main(int argc, char *argv[]) {
     }
 
     // Generate sets of initial means that can be supplied to algorithms
-    generate_initial_means(*dataset);
+    for (int i = 0; i < MEAN_SETS; i++) {
+        generate_initial_means(*dataset);
+    }
 
     if (size != dataset->size) {
         std::cerr << "ERROR: size " << size << " smaller than dataset size " << dataset->size << std::endl;
