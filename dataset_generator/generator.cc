@@ -365,6 +365,7 @@ int write_cluster_centers(Dataset &dataset, const char *outdir) {
 int write_initial_means(Dataset &dataset, const char *outdir) {
     std::stringstream ss_means;
     std::ofstream meansfile;
+    std::vector<double> point;
 
     for (int i = 0; i < MEAN_SETS; i++) {
         // Open initial means file corresponding to index + 1
@@ -374,13 +375,19 @@ int write_initial_means(Dataset &dataset, const char *outdir) {
 
         // Check if file is open
         if (!meansfile.is_open()) {
-            std::cerr << "Error opening cluster centre file in " << outdir << ", terminating..." << std::endl;
+            std::cerr << "Error opening initial means file " << i << " in " << outdir << ", terminating..." << std::endl;
             return 2;
         }
 
-        // Write cluster centres to file
-        // TODO
+        // Write initial mean set to file
+        for (unsigned int j = 0; j < dataset.initialMeans[i].size(); j++) {
+            point = dataset.datapoints[dataset.initialMeans[i][j]];
+            for (unsigned int k = 0; k < point.size(); k++) {
+                meansfile << point[k] << " ";
+            }
+        }
         
+        // Close file and reset flags
         meansfile.close();
         meansfile.clear();
     }
