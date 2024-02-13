@@ -388,6 +388,32 @@ int write_initial_means(Dataset &dataset, const char *outdir) {
     return 0;
 }
 
+int write_metadata(Dataset &dataset, const char *outdir) {
+    // Open cluster center file
+    std::stringstream ss_metadata;
+    ss_metadata << outdir << "/metadata.md";
+    std::ofstream metadatafile(ss_metadata.str());
+
+    // Check if file is open
+    if (!metadatafile.is_open()) {
+        std::cerr << "Error opening metadata file in " << outdir << ", terminating..." << std::endl;
+        return 2;
+    }
+
+    // Write metadata from dataset and program settings
+    metadatafile << "# Metadata file for k-means dataset generator" << std::endl;
+    metadatafile << "- Generator seed: " << dataset.seed << std::endl;
+    metadatafile << "- Dataset size (2^x): " << dataset.size << std::endl;
+    metadatafile << "- Datapoints generated: " << dataset.numDataPoints << std::endl;
+    metadatafile << "- Data dimension: " << dataset.dataDim << std::endl;
+    metadatafile << "- Clusters generated: " << dataset.numClusters << std::endl;
+    metadatafile << "- Default dataset size: " << MINIMUM_SIZE << std::endl;
+    metadatafile << "- Initial mean sets generated: " << MEAN_SETS << std::endl;
+
+    metadatafile.close();
+    return 0;
+}
+
 /**
  * Function for testing the dataset generations.
  * Does running this function 2 times result in identical datasets? (should be yes)
@@ -492,6 +518,7 @@ int main(int argc, char *argv[]) {
     write_data(*dataset, outdir);
     write_cluster_centers(*dataset, outdir);
     write_initial_means(*dataset, outdir);
+    write_metadata(*dataset, outdir);
 
     delete dataset;
 
