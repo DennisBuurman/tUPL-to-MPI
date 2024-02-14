@@ -24,8 +24,8 @@ const double CENTRE_MIN = 0.0;
 const double CENTRE_MAX = 10.0;
 const double DOUBLE_MAX = std::numeric_limits<double>::max();
 
-const uint8_t MINIMUM_SIZE = 24;
-const uint8_t MEAN_SETS = 10;
+const int MINIMUM_SIZE = 24;
+const int MEAN_SETS = 10;
 
 bool isdir(const char *path)
 {
@@ -239,7 +239,22 @@ double distance(std::vector<double> x, std::vector<double> y) {
     for (unsigned int i = 0; i < x.size(); i++) {
         d += (x[i] - y[i]) * (x[i] - y[i]);
     }
-    return sqrt(d);
+    // return sqrt(d);
+    return d;
+}
+
+/**
+ * Check if uint64_t x is in vector.
+ * @param x: element to check
+ * @param v: vector
+*/
+inline bool in_vector(uint64_t x, std::vector<uint64_t> v) {
+    for (uint64_t i = 0; i < v.size(); i++) {
+        if (x == v[i]) {
+            return true;
+        }
+    }
+    return false;
 }
 
 /**
@@ -255,34 +270,40 @@ double distance(std::vector<double> x, std::vector<double> y) {
 */
 void generate_initial_means(Dataset &dataset) {
     uint64_t centroid_index;
-    double d, d_min = DOUBLE_MAX, d_max = -1; // distance between 2 points
+    double d, d_min = DOUBLE_MAX, d_max = -1; // distance variables
     std::vector<uint64_t> means;
+    std::vector<double> point, centroid;
 
-    // Randomly select first centroid
+    // Randomly select first centroid (uniformly)
     std::random_device rand_dev;
     std::mt19937 generator(rand_dev());
-    std::uniform_int_distribution<uint64_t> dist(0, dataset.numDataPoints);
+    std::uniform_int_distribution<uint64_t> dist(0, dataset.numDataPoints-1);
     centroid_index = dist(generator);
     means.push_back(centroid_index);
 
     // Select remaining k - 1 initial cluster centroids
     for (unsigned int k = 0; k < dataset.numClusters - 1; k++) {
+        d_max = -1;
+        
         // Select point with maximum distance from previous centroids as next centroid
-        for (unsigned int i = 0; i < dataset.datapoints.size(); i++) { 
-            // Calculate minimum distance from nearest, previously chosen centroids
+        for (uint64_t i = 0; i < dataset.datapoints.size(); i++) {
+            point = dataset.datapoints[i];
             d_min = DOUBLE_MAX;
-            for (unsigned int j = 0; j < dataset.initialMeans.size(); j++) {
-                d = distance(dataset.datapoints[i], dataset.datapoints[means[j]]);
-                if (d < d_min) {
-                    d_min = d;
+            if (!in_vector(i, means)) {
+                // Calculate minimum distance between point i and previously chosen centroids
+                for (unsigned int j = 0; j < means.size(); j++) {
+                    centroid = dataset.datapoints[means[j]];
+                    d = distance(point, centroid);
+                    d = std::min(d, d_min);
+                }
+                // Select max distance from closest centroid distance for each point
+                if (d_min > d_max) {
+                    centroid_index = i;
+                    d_max = d_min;
                 }
             }
-            // Select max distance from closest centroid distance for each point
-            if (d_min > d_max) {
-                centroid_index = i;
-                d_max = d_min;
-            }
         }
+
         // Add new centroid to initial means
         means.push_back(centroid_index);
     }
@@ -370,7 +391,8 @@ int write_initial_means(Dataset &dataset, const char *outdir) {
     for (int i = 0; i < MEAN_SETS; i++) {
         // Open initial means file corresponding to index + 1
         ss_means.clear();
-        ss_means << outdir << "/initial_means" << i+1 << ".txt";
+        ss_means.str(std::string());
+        ss_means << outdir << "initial_means" << i+1 << ".txt";
         meansfile.open(ss_means.str());
 
         // Check if file is open
@@ -381,10 +403,12 @@ int write_initial_means(Dataset &dataset, const char *outdir) {
 
         // Write initial mean set to file
         for (unsigned int j = 0; j < dataset.initialMeans[i].size(); j++) {
+            meansfile << j << " ";
             point = dataset.datapoints[dataset.initialMeans[i][j]];
             for (unsigned int k = 0; k < point.size(); k++) {
                 meansfile << point[k] << " ";
             }
+            meansfile << std::endl;
         }
         
         // Close file and reset flags
@@ -395,6 +419,11 @@ int write_initial_means(Dataset &dataset, const char *outdir) {
     return 0;
 }
 
+/**
+ * Write dataset variables as metadata file
+ * @param dataset: dataset to use for metadata
+ * @param outdir: file directory
+*/
 int write_metadata(Dataset &dataset, const char *outdir) {
     // Open cluster center file
     std::stringstream ss_metadata;
@@ -409,13 +438,13 @@ int write_metadata(Dataset &dataset, const char *outdir) {
 
     // Write metadata from dataset and program settings
     metadatafile << "# Metadata file for k-means dataset generator" << std::endl;
-    metadatafile << "- Generator seed: " << dataset.seed << std::endl;
-    metadatafile << "- Dataset size (2^x): " << dataset.size << std::endl;
-    metadatafile << "- Datapoints generated: " << dataset.numDataPoints << std::endl;
-    metadatafile << "- Data dimension: " << dataset.dataDim << std::endl;
-    metadatafile << "- Clusters generated: " << dataset.numClusters << std::endl;
-    metadatafile << "- Default dataset size: " << MINIMUM_SIZE << std::endl;
-    metadatafile << "- Initial mean sets generated: " << MEAN_SETS << std::endl;
+    metadatafile << "seed: " << dataset.seed << std::endl;
+    metadatafile << "size: " << dataset.size << std::endl;
+    metadatafile << "datapoints: " << dataset.numDataPoints << std::endl;
+    metadatafile << "dimension: " << dataset.dataDim << std::endl;
+    metadatafile << "clusters: " << dataset.numClusters << std::endl;
+    metadatafile << "default_size: " << MINIMUM_SIZE << std::endl;
+    metadatafile << "mean_sets: " << MEAN_SETS << std::endl;
 
     metadatafile.close();
     return 0;
@@ -423,7 +452,8 @@ int write_metadata(Dataset &dataset, const char *outdir) {
 
 /**
  * Function for testing the dataset generations.
- * Does running this function 2 times result in identical datasets? (should be yes)
+ * Running this function 2 times should result in identical datasets.
+ * Only the initial mean sets should be different.
 */
 void test() {
     int seed = 971, size = 8, clusters = 4, dim = 4, upscale = 1, mean_sets = 3;
@@ -510,18 +540,20 @@ int main(int argc, char *argv[]) {
     } else if (size_difference < 0) {
         std::cerr << "ERROR: requested size " << size << " smaller than minimum size " << MINIMUM_SIZE << std::endl;
     }
-
-    // Generate sets of initial means that can be supplied to algorithms
-    for (int i = 0; i < MEAN_SETS; i++) {
-        generate_initial_means(*dataset);
-    }
-
+    
     if (size != dataset->size) {
         std::cerr << "ERROR: size " << size << " smaller than dataset size " << dataset->size << std::endl;
         return 1;
     }
 
+    // Generate sets of initial means that can be supplied to algorithms
+    std::cout << "Generating " << MEAN_SETS << " sets of initial means..." << std::endl;
+    for (int i = 0; i < MEAN_SETS; i++) {
+        generate_initial_means(*dataset);
+    }
+
     // Write dataset to files
+    std::cout << "Writing output to files..." << std::endl;
     write_data(*dataset, outdir);
     write_cluster_centers(*dataset, outdir);
     write_initial_means(*dataset, outdir);
