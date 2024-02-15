@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import sys
+from mpl_toolkits import mplot3d
 import matplotlib.pyplot as plt
 import numpy as np
 from argparse import ArgumentParser
@@ -10,32 +11,80 @@ datafile = "data.txt"
 meansfile = "initial_means{}.txt"
 
 
-def plot2d(d: np.array, m: np.array, meta: Dict[str, int]) -> None:
+def plot2d(d: np.array, m: np.array, means: int, meta: Dict[str, int]) -> None:
     """ Create 2d plot of dataset """
     fig = plt.figure()
-    ax1 = fig.add_subplot(111)
+    ax = fig.add_subplot(111)
 
     # Add data points
     x = d[:, 0]
     y = d[:, 1]
-    ax1.scatter(x, y, alpha=0.7, c='b')
+    ax.scatter(x, y, alpha=0.7, c='b')
 
-    # Color initial means
+    # Add initial means as colored points
     x = m[:, 0]
     y = m[:, 1]
-    ax1.scatter(x, y, alpha=1.0, c='r', label="Initial means")
-    plt.title("k-means 2d scatter plot")
+    ax.scatter(x, y, alpha=1.0, c='r', label="Initial means")
+    
+    # Plot data
+    plt.title(f"k-means 2d scatter plot (means set {means})")
     plt.legend(loc='upper left')
+    fig.tight_layout()
     # plt.show()
-    plt.savefig(f"k-means_2d_seed{meta['seed']}_size{meta['size']}_c{meta['clusters']}.png")
+    plt.savefig(f"k-means_2d_seed{meta['seed']}_size{meta['size']}_c{meta['clusters']}_m{means}.png")
+    plt.close()
 
-def plot3d(d: np.array, m: np.array, meta: Dict[str, int]) -> None:
-    print("Not implemented yet")
-    pass
+def plot3d(d: np.array, m: np.array, means: int, meta: Dict[str, int]) -> None:
+    """ Create 3d plot of dataset """
+    fig = plt.figure()
+    ax = plt.axes(projection ="3d")
 
-def plot4d(d: np.array, m: np.array, meta: Dict[str, int]) -> None:
-    print("Not implemented yet")
-    pass
+    # Add data points
+    x = d[:, 0]
+    y = d[:, 1]
+    z = d[:, 2]
+    ax.scatter3D(x, y, z, alpha=1./510, color='b')
+
+    # Add initial means as colored points
+    x = m[:, 0]
+    y = m[:, 1]
+    z = m[:, 2]
+    ax.scatter3D(x, y, z, alpha=1.0, color='r', label="Initial means")
+
+    # Plot data
+    plt.title(f"k-means 3d scatter plot (means set {means})")
+    plt.legend(loc='upper left')
+    fig.tight_layout()
+    # plt.show()
+    plt.savefig(f"k-means_3d_seed{meta['seed']}_size{meta['size']}_c{meta['clusters']}_m{means}.png")
+    plt.close()
+
+def plot4d(d: np.array, m: np.array, means: int, meta: Dict[str, int]) -> None:
+    """ Create 3d plot where 4th dim is the color """
+    fig = plt.figure()
+    ax = plt.axes(projection ="3d")
+
+    # Add data points
+    x = d[:, 0]
+    y = d[:, 1]
+    z = d[:, 2]
+    c = d[:, 3]
+    img = ax.scatter3D(x, y, z, c=c, alpha=1./510, cmap=plt.hot())
+    fig.colorbar(img)
+
+    # Add initial means as colored points
+    x = m[:, 0]
+    y = m[:, 1]
+    z = m[:, 2]
+    ax.scatter3D(x, y, z, alpha=1.0, color='b', label="Initial means")
+
+    # Plot data
+    plt.title(f"k-means 3d scatter plot (means set {means})")
+    plt.legend(loc='upper left')
+    fig.tight_layout()
+    # plt.show()
+    plt.savefig(f"k-means_4d_seed{meta['seed']}_size{meta['size']}_c{meta['clusters']}_m{means}.png")
+    plt.close()
 
 def plot_dataset(directory: str, means: int, meta: Dict[str, int]) -> None:
     """ Plot the data from datafilename and highlight the initial means from meansfilename. """
@@ -45,6 +94,7 @@ def plot_dataset(directory: str, means: int, meta: Dict[str, int]) -> None:
         m = np.array([[float(y) for y in x.split()[1:]] for x in f.readlines()])
     
     dim = d.shape[1]
+    print(f"Plotting dataset of dimension {dim}, using mean set {means} ...")
     plotting_functions: Dict[int, function] = {
         2: plot2d,
         3: plot3d,
@@ -52,7 +102,7 @@ def plot_dataset(directory: str, means: int, meta: Dict[str, int]) -> None:
     }
     if (dim not in plotting_functions):
         print(f"ERROR: unable to plot dataset of dimension {dim}", file=sys.stderr)
-    plotting_functions[dim](d, m, meta)
+    plotting_functions[dim](d, m, means, meta)
 
 def read_meta(dir: str) -> Dict[str, int]:
     """ Read the metadata file from the given directory """

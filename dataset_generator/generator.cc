@@ -260,8 +260,9 @@ inline bool in_vector(uint64_t x, std::vector<uint64_t> v) {
 /**
  * Generate (set) of initial means to be used during execution.
  * This function uses the k-means++ method to generate initial means.
- * In short, iteratively selects the point with maximum distance from previously selected centroids.
- * First centroid is randomly selected.
+ * First centroid is randomly selected (uniformly).
+ * In short, next centroid is the point with maximum distance from previously selected centroids.
+ * This is different from the original k-means++ probability distribution, but achieves comparable results.
  * Selected centroids are used as initial means.
  * Initial means are saved in initial_means vector of dataset.
  * Based on implementation from https://www.geeksforgeeks.org/ml-k-means-algorithm/.
