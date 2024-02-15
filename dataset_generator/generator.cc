@@ -393,7 +393,7 @@ int write_initial_means(Dataset &dataset, const char *outdir) {
         // Open initial means file corresponding to index + 1
         ss_means.clear();
         ss_means.str(std::string());
-        ss_means << outdir << "initial_means" << i+1 << ".txt";
+        ss_means << outdir << "/initial_means_" << i+1 << ".txt";
         meansfile.open(ss_means.str());
 
         // Check if file is open

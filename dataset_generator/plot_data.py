@@ -8,7 +8,7 @@ from argparse import ArgumentParser
 from typing import Dict, List, Tuple
 
 datafile = "data.txt"
-meansfile = "initial_means{}.txt"
+meansfile = "initial_means_{}.txt"
 
 
 def plot2d(d: np.array, m: np.array, means: int, meta: Dict[str, int]) -> None:
