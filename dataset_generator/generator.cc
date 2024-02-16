@@ -210,15 +210,12 @@ void upscale_dataset(Dataset &dataset, const int y) {
     std::cout << "Upscaling dataset from size " << dataset.size << " to size " << dataset.size + y << std::endl;
     // Allocate new datapoints
     for (int i = 0; i < y; i++) {
-        // Duplicate dataset
-        for (uint64_t j = 0; j < dataset.numDataPoints; j++) {
-            dataset.clusterCenters.push_back(dataset.clusterCenters[j]);
-            dataset.clusterStd.push_back(dataset.clusterStd[j]);
-            dataset.membership.push_back(dataset.membership[j]);
-            dataset.datapoints.push_back(dataset.datapoints[j]);
-            dataset.clusterSize[dataset.membership[j]]++;
-        }
-        // Update dataset sizes
+        dataset.membership.resize(2*dataset.numDataPoints);
+        std::copy_n(dataset.membership.begin(), dataset.numDataPoints, dataset.membership.begin() + dataset.numDataPoints);
+        dataset.datapoints.resize(2*dataset.numDataPoints);
+        std::copy_n(dataset.datapoints.begin(), dataset.numDataPoints, dataset.datapoints.begin() + dataset.numDataPoints);
+        std::transform(dataset.clusterSize.begin(), dataset.clusterSize.end(), dataset.clusterSize.begin(), std::bind1st(std::multiplies<uint64_t>(), 2));
+        // Update dataset size
         dataset.size++;
         dataset.numDataPoints <<= 1;
     }
