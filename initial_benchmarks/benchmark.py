@@ -32,7 +32,8 @@ ex1_config: Dict[str, any] = {
     "seed": "971",
     "variant": "own own_inc own_loc own_inc_loc",
     # "size": "20 21 22 23 24 25 26 27 28",
-    "size": "24 25 26 27 28",
+    # "size": "24 25 26 27 28",
+    "size": "24",
     "clusters": [4],
     "dimension": [4],
     # "nodes": [[8]],
@@ -86,7 +87,7 @@ def split_arguments(arguments: List[str]) -> Dict[str, List[str]]:
         names[n] = options[1:] # argument options / values
     return names
 
-def submit_jobs(file: str, datapath: str, variant: str, size: str, clusters: str, dimension: str, seed: str, nodes: List[List[int]], tasks: List[List[int]], repeat: str, compute_cluster: str, init_seed: int) -> Tuple[int, List[str]]:
+def submit_jobs(file: str, datapath: str, variant: str, size: str, clusters: str, dimension: str, seed: str, nodes: List[List[int]], tasks: List[List[int]], repeat: str, compute_cluster: str, mean_set: int) -> Tuple[int, List[str]]:
     """ Submits jobs to DAS5 or DAS6 cluster depending on configuration. Configurations must adhere ex1_config notation. """
     config_counter: int = 0 # count node*task configs
     command_list: List[str] = []
@@ -99,7 +100,7 @@ def submit_jobs(file: str, datapath: str, variant: str, size: str, clusters: str
         tasks_str: str = ""
         for t in t_list:
             tasks_str += str(t) + " "
-        command: str = f"./{file} --datapath {datapath} --variant {variant} --size {size} --clusters {clusters} --dimension {dimension} --seed {seed} --nodes {node_str} --ntasks-per-node {tasks_str} --repeat {repeat} --cluster {compute_cluster} --init-seed {init_seed}"
+        command: str = f"./{file} --datapath {datapath} --variant {variant} --size {size} --clusters {clusters} --dimension {dimension} --seed {seed} --nodes {node_str} --ntasks-per-node {tasks_str} --repeat {repeat} --cluster {compute_cluster} --means-set {mean_set}"
         print(f"> Running commmand: {command}")
         if not debug:
             subprocess.run(command.split())
@@ -157,7 +158,7 @@ def write_commands_to_file(command_list: List[str]) -> str:
         arguments: List[str] = parts[1:]
         names: Dict[str, List[str]] = split_arguments(arguments)
         # Remove arguments with singular value
-        template: str = f"{script} --datapath {names['datapath'][0]} --seed {names['seed'][0]} --repeat {names['repeat'][0]} --init-seed {names['init-seed'][0]} --cluster {names['cluster'][0]}"
+        template: str = f"{script} --datapath {names['datapath'][0]} --seed {names['seed'][0]} --repeat {names['repeat'][0]} --means-set {names['means-set'][0]} --cluster {names['cluster'][0]}"
         del names["datapath"]
         del names["seed"]
         del names["repeat"]
@@ -293,8 +294,9 @@ def run_experiment(config: Dict[str, any], options: Dict[str, any], ex_num: int)
     compute_cluster: str = options["compute-cluster"]
     datapath: str = options["datapath"]
     scriptpath: str = options["scriptpath"]
-    init_seed: int = options["seed"]
+    # init_seed: int = options["seed"]
     file_date: str = options["date"]
+    mean_set: int = options["means-set"]
 
     # Check if any .out files still in directory
     old_results: int = len(glob.glob1(".","*.out"))
@@ -311,7 +313,7 @@ def run_experiment(config: Dict[str, any], options: Dict[str, any], ex_num: int)
         return 1
     
     # Create commands to submit jobs for each nodes * tasks config
-    config_counter, command_list = submit_jobs(file, datapath, variant, size, clusters, dimension, seed, nodes, tasks, repeat, compute_cluster, init_seed)
+    config_counter, command_list = submit_jobs(file, datapath, variant, size, clusters, dimension, seed, nodes, tasks, repeat, compute_cluster, mean_set)
    
     # Create commands report file
     print("> Writing all executed commands to file ...")
@@ -370,8 +372,10 @@ def main():
                             help="Only validate results in current folder; overrides other arguments.")
     parser.add_argument("--commands-file", dest="commands-file", type=str, default=f"commands_{date}.txt",
                             help="Clean output scripts; overrides other arguments.")
-    parser.add_argument("--seed", dest="seed", type=int,
-                            help="MPI rank init seed")
+    # parser.add_argument("--seed", dest="seed", type=int,
+    #                         help="MPI rank init seed")
+    parser.add_argument("--means-set", "--m", dest="means-set", type=int, default=1,
+                            help="Mean set to use for initialization")
     parser.add_argument("--date", dest="date", type=str, default=date,
                             help="Date used in result file name")
     args = parser.parse_args()
@@ -404,11 +408,11 @@ def main():
         debug = True
         print("--- Debug mode enabled ---")
 
-    # Generate random seed if none set
-    if options["seed"] == None:
-        seed: int = random.randint(0, sys.maxsize)
-        print(f"WARNING: --seed param not set; random seed {seed} used")
-        options["seed"] = seed
+    # # Generate random seed if none set
+    # if options["seed"] == None:
+    #     seed: int = random.randint(0, sys.maxsize)
+    #     print(f"WARNING: --seed param not set; random seed {seed} used")
+    #     options["seed"] = seed
 
     # Run selected experiment
     experiment: int = options["experiment"]

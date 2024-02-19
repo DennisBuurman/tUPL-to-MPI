@@ -45,8 +45,10 @@ struct Options {
   int numRuns;
   int currentRun;
 
-  bool seedFlag;
-  int seed;
+  // bool seedFlag;
+  // int seed;
+  bool meansFlag;
+  int meansSet;
 
   /* Determined when reading input file */
   uint64_t numDataPoints;
@@ -317,6 +319,60 @@ static inline void initializeMeans(const struct Options &options,
   //communicate the inital values for the means and sizes of the means
   MPI_Allreduce(meanValuesBuff, meanValues[0], options.numMeans * options.dataDim, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
   MPI_Allreduce(meanSizeBuff, meanSize, options.numMeans, MPI_UINT64_T, MPI_SUM, MPI_COMM_WORLD);
+}
+
+inline std::vector<double> split_line(const std::string line) {
+  std::vector<double> v;
+  std::stringstream ss(line);
+  std::string s;
+
+  getline(ss, s, ' '); // skip point index
+  while (getline(ss, s, ' ')) {
+    v.push_back(std::stod(s));
+  }
+
+  return v;
+}
+
+inline void vector_to_mean_values(std::vector<std::vector<double>> v, double **meanValues) {
+  for (unsigned int i = 0; i < v.size(); i++) {
+    for (unsigned int j = 0; j < v[i].size(); j++) {
+      meanValues[i][j] = v[i][j];
+    }
+  }
+}
+
+template<typename D, typename B>
+static inline void initialize_means_from_file(const struct Options &options,
+                                              D *data,
+                                              uint64_t *meanSize,
+                                              uint64_t *meanSizeBuff,
+                                              double **meanValues,
+                                              double *meanValuesBuff,
+                                              B *belongsToMean) {
+  // TODO INIT: check array contents
+  std::fill(meanSizeBuff, meanSizeBuff + options.numMeans, 1);
+  std::fill(meanValuesBuff, meanValuesBuff + options.numMeans * options.dataDim, 0.0);
+
+  std::vector<std::vector<double>> v;
+  std::string filename = options.inputDir;
+  filename += + "/initial_means_" + std::to_string(options.meansSet) + ".txt";
+  std::ifstream f(filename);
+  std::string line;
+
+  if (!f.is_open()) {
+    std::cerr << "ERROR: unable to open file " << filename << std::endl;
+  }
+  if (mpi_rank == 0) {
+    std::cout << "EXP " << options.currentRun << ": using initial means from file '"
+              << filename << "'" << std::endl;
+  }
+
+  while (f >> line) {
+    v.push_back(split_line(line));
+  }
+
+  vector_to_mean_values(v, meanValues);
 }
 
 template<typename D, typename B>

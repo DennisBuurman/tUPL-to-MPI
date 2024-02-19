@@ -34,15 +34,19 @@ double ** allocate2dDoubleArray(uint64_t rows, int columns) {
 
 void initRandom(const struct Options &options)
 {
-  unsigned int seed;
+  unsigned int seed = 0;
   if (mpi_rank == 0) {
-    if (!options.seedFlag) {
-      std::ifstream randomIn("/dev/random");
-      randomIn.read(reinterpret_cast<char *>(&seed), sizeof(seed));
-      randomIn.close();
-    } else {
-      seed = options.seed;
-    }
+    // if (!options.seedFlag) {
+    //   std::ifstream randomIn("/dev/random");
+    //   randomIn.read(reinterpret_cast<char *>(&seed), sizeof(seed));
+    //   randomIn.close();
+    // } else {
+    //   seed = options.seed;
+    // }
+
+    std::ifstream randomIn("/dev/random");
+    randomIn.read(reinterpret_cast<char *>(&seed), sizeof(seed));
+    randomIn.close();
 
     std::cout << "EXP " << options.currentRun << ": using seed "
         << std::hex << seed << std::dec << std::endl;
@@ -88,7 +92,7 @@ bool parseArgs(int argc, char ** argv, struct Options &options)
 
   options.numRuns = 1;
 
-  while ((c = getopt(argc, argv, "hi:f:k:d:t:s:r:x:")) != -1)
+  while ((c = getopt(argc, argv, "hi:f:k:d:t:s:r:m:")) != -1)
     {
       switch (c)
         {
@@ -126,9 +130,14 @@ bool parseArgs(int argc, char ** argv, struct Options &options)
             options.numRuns = std::atoi(optarg);
             break;
 
-          case 'x':
-            options.seedFlag = true;
-            options.seed = std::atoi(optarg);
+          // case 'x':
+          //   options.seedFlag = true;
+          //   options.seed = std::atoi(optarg);
+          //   break;
+
+          case 'm':
+            options.meansFlag = true;
+            options.meansSet = std::atoi(optarg);
             break;
 
           case 'h':
@@ -161,6 +170,14 @@ bool parseArgs(int argc, char ** argv, struct Options &options)
               << "convergenceDelta=" << options.convergenceDelta << " "
               << "thresholdMultiplier=" << options.thresholdMultiplier
               << std::endl;
+    
+    std::cout << "INITIALIZATION: ";
+    if (options.meansFlag) {
+      std::cout << "MEAN SET " << options.meansSet;
+    } else {
+      std::cout << "RANDOM";
+    }
+    std::cout << std::endl;
   }
 
   return true;
@@ -178,8 +195,10 @@ int runVariant(int argc, char **argv, kMeansVariantFunc variantFunc)
   mpi_hostname[hostNameLength] = 0;
   
   struct Options options;
-  options.seedFlag = false;
-  options.seed = 0;
+  // options.seedFlag = false;
+  // options.seed = 0;
+  options.meansFlag = false;
+  options.meansSet = 0;
   if (!parseArgs(argc, argv, options))
     return 1;
   

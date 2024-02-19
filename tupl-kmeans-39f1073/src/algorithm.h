@@ -59,7 +59,9 @@ void kmeansRecalc(struct Options &options, const std::string &variant,
   const uint64_t numDataPoints(options.numDataPoints);
   const int dataDim(options.dataDim);
   
-  initRandom(options);
+  if (!options.meansFlag) {
+    initRandom(options);
+  }
 
   //log the start time
   MPI_Barrier(MPI_COMM_WORLD);
@@ -74,8 +76,14 @@ void kmeansRecalc(struct Options &options, const std::string &variant,
   double * meanValuesBuff = new double[numMeans * dataDim];
   double threshold = numDataPoints * options.thresholdMultiplier;
   
-  initializeMeans(options, data, meanSize, meanSizeBuff,
-                  meanValues, meanValuesBuff, belongsToMean);
+  if (options.meansFlag) {
+    initialize_means_from_file(options, data, meanSize, meanSizeBuff,
+                               meanValues, meanValuesBuff, belongsToMean);
+  } else {
+    initializeMeans(options, data, meanSize, meanSizeBuff,
+                    meanValues, meanValuesBuff, belongsToMean);
+  }
+
   divideMeans(options, meanValues, meanSize);
 
   recordOldMeans(options,
@@ -152,8 +160,10 @@ void kmeansIncremental(struct Options &options, const std::string &variant,
   const int numMeans(options.numMeans);
   const uint64_t numDataPoints(options.numDataPoints);
   const int dataDim(options.dataDim);
-
-  initRandom(options);
+  
+  if (!options.meansFlag) {
+    initRandom(options);
+  }
   
   //log the start time
   MPI_Barrier(MPI_COMM_WORLD);
@@ -170,8 +180,13 @@ void kmeansIncremental(struct Options &options, const std::string &variant,
   double threshold = numDataPoints * options.thresholdMultiplier;
   //TODO make meanValuesBuff a 2d array as well since this is just inconsistent
   
-  initializeMeans(options, data, meanSize, meanSizeBuff,
-                  meanValues, meanValuesBuff, belongsToMean);
+  if (options.meansFlag) {
+    initialize_means_from_file(options, data, meanSize, meanSizeBuff,
+                               meanValues, meanValuesBuff, belongsToMean);
+  } else {
+    initializeMeans(options, data, meanSize, meanSizeBuff,
+                    meanValues, meanValuesBuff, belongsToMean);
+  }
   
   //remember the old values and sizes of the means for recalculation
   memcpy(oldMeanValuesSum[0], meanValues[0], numMeans * dataDim * sizeof(double));
