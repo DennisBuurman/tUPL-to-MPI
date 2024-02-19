@@ -6,6 +6,7 @@
 # the corresponding visualize.py file.
 # 
 # Author: Dennis Buurman, Leiden University
+
 import sys
 from argparse import ArgumentParser
 import subprocess
@@ -31,8 +32,7 @@ ex1_config: Dict[str, any] = {
     "seed": "971",
     "variant": "own own_inc own_loc own_inc_loc",
     # "size": "20 21 22 23 24 25 26 27 28",
-    # "size": "24 25 26 27 28",
-    "size": "24",
+    "size": "24 25 26 27 28",
     "clusters": [4],
     "dimension": [4],
     # "nodes": [[8]],
@@ -113,7 +113,7 @@ def progress(filecount: int, old_results: int) -> None:
     new: int = len(glob.glob1(".","*.out"))
     pbar = tqdm(total=filecount, desc="Waiting for jobs to start")
     time_spend = 0
-    while ((new - old_results < filecount) and time_spend < 60*60):
+    while ((new - old_results < filecount) and time_spend < 30*60):
         current = new
         time.sleep(1)
         new = len(glob.glob1(".","*.out"))
@@ -313,16 +313,16 @@ def run_experiment(config: Dict[str, any], options: Dict[str, any], ex_num: int)
     # Create commands to submit jobs for each nodes * tasks config
     config_counter, command_list = submit_jobs(file, datapath, variant, size, clusters, dimension, seed, nodes, tasks, repeat, compute_cluster, init_seed)
    
+    # Create commands report file
+    print("> Writing all executed commands to file ...")
+    filename: str = write_commands_to_file(command_list)
+
     # Wait for jobs to start and finish
     filecount = config_counter * len(variant.split()) * len(size.split()) * len(clusters.split()) * len(dimension.split())
     if not debug:
         progress(filecount, old_results) # waits for all jobs to start
         wait_on_queue() # checks run queue for set account name
     print("> Job runs finished!")
-    
-    # Create commands report file
-    print("> Writing all executed commands to file ...")
-    filename: str = write_commands_to_file(command_list)
     
     # Validate result of each individual command, rerun failed configs
     print("> Validating command outputs ...")

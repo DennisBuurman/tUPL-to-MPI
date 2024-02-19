@@ -1,11 +1,17 @@
 CXX = g++
-CXXFLAGS = -Wall -Wextra -g -O3 -std=c++0x
+CXXFLAGS = -c -Wall -Wextra -g -O3 -std=c++0x
+LDFLAGS =
+SOURCES = main.cc generator.cc
+OBJECTS = $(SOURCES:.cc=.o)
+EXECUTABLE = generator
 
+all: $(SOURCES) $(EXECUTABLE)
+	
+$(EXECUTABLE): $(OBJECTS) 
+	$(CXX) $(OBJECTS) -o $@ $(LDFLAGS)
 
-all:	generator
-
-generator:	generator.cc
-		$(CXX) $(CXXFLAGS) -o $@ $<
+.cc.o:
+	$(CXX) $(CXXFLAGS) $< -o $@ $(LDFLAGS)
 
 clean:
-	rm -f generator
+	rm -rf *o $(EXECUTABLE)
