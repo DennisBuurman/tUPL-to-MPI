@@ -45,8 +45,8 @@ struct Options {
   int numRuns;
   int currentRun;
 
-  // bool seedFlag;
-  // int seed;
+  bool seedFlag;
+  int seed;
   bool meansFlag;
   int meansSet;
 
@@ -338,6 +338,20 @@ inline void vector_to_mean_values(std::vector<std::vector<double>> v, double **m
   for (unsigned int i = 0; i < v.size(); i++) {
     for (unsigned int j = 0; j < v[i].size(); j++) {
       meanValues[i][j] = v[i][j];
+    }
+  }
+}
+
+inline void assign_initial_points(D *data, uint64_t *meanSize, uint64_t *meanSizeBuff, double **meanValues, double *meanValuesBuff, B *belongsToMean) {
+  int mean;
+
+  for (uint64_t i = start; i < options.numLocalDataPoints; i++) {
+    mean = rand() % options.numMeans;
+    setMean(belongsToMean, i, mean);
+    meanSizeBuff[mean]++;
+    
+    for (int d = 0; d < options.dataDim; d++) {
+      meanValuesBuff[mean * options.dataDim + d] += getDataPoint(data, i, d);
     }
   }
 }

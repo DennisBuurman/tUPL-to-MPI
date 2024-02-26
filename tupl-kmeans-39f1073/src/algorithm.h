@@ -58,10 +58,8 @@ void kmeansRecalc(struct Options &options, const std::string &variant,
   const int numMeans(options.numMeans);
   const uint64_t numDataPoints(options.numDataPoints);
   const int dataDim(options.dataDim);
-  
-  if (!options.meansFlag) {
-    initRandom(options);
-  }
+
+  initRandom(options);
 
   //log the start time
   MPI_Barrier(MPI_COMM_WORLD);
@@ -75,21 +73,24 @@ void kmeansRecalc(struct Options &options, const std::string &variant,
   double ** oldMeanValues = allocate2dDoubleArray(numMeans,dataDim);
   double * meanValuesBuff = new double[numMeans * dataDim];
   double threshold = numDataPoints * options.thresholdMultiplier;
-  
+
   if (options.meansFlag) {
     initialize_means_from_file(options, data, meanSize, meanSizeBuff,
                                meanValues, meanValuesBuff, belongsToMean);
+    // TODO init: assign initial points to cluster
+    // TODO: kmeansrecalc has segfault with this function enabled
   } else {
     initializeMeans(options, data, meanSize, meanSizeBuff,
                     meanValues, meanValuesBuff, belongsToMean);
   }
 
+  // TODO init: can I just skip this when initializing from file?
   divideMeans(options, meanValues, meanSize);
 
   recordOldMeans(options,
                  const_cast<const double **>(meanValues), oldMeanValues,
                  const_cast<const uint64_t *>(meanSize), oldMeanSize);
-  
+
   //execute the algorithm (this is where the magic happens)
   //NOTE: this is only one of several possible ways to code this
   
@@ -161,9 +162,7 @@ void kmeansIncremental(struct Options &options, const std::string &variant,
   const uint64_t numDataPoints(options.numDataPoints);
   const int dataDim(options.dataDim);
   
-  if (!options.meansFlag) {
-    initRandom(options);
-  }
+  initRandom(options);
   
   //log the start time
   MPI_Barrier(MPI_COMM_WORLD);
@@ -179,10 +178,11 @@ void kmeansIncremental(struct Options &options, const std::string &variant,
   double * meanValuesBuff = new double[numMeans * dataDim];
   double threshold = numDataPoints * options.thresholdMultiplier;
   //TODO make meanValuesBuff a 2d array as well since this is just inconsistent
-  
+
   if (options.meansFlag) {
     initialize_means_from_file(options, data, meanSize, meanSizeBuff,
                                meanValues, meanValuesBuff, belongsToMean);
+    // TODO init: assign initial points to cluster
   } else {
     initializeMeans(options, data, meanSize, meanSizeBuff,
                     meanValues, meanValuesBuff, belongsToMean);
@@ -191,8 +191,9 @@ void kmeansIncremental(struct Options &options, const std::string &variant,
   //remember the old values and sizes of the means for recalculation
   memcpy(oldMeanValuesSum[0], meanValues[0], numMeans * dataDim * sizeof(double));
 
+  // TODO init: can I just skip this when initializing from file?
   divideMeans(options, meanValues, meanSize);
-  
+
   recordOldMeans(options,
                  const_cast<const double **>(meanValues), oldMeanValues,
                  const_cast<const uint64_t *>(meanSize), oldMeanSize);

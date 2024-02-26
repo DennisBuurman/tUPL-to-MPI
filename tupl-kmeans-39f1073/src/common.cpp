@@ -36,17 +36,13 @@ void initRandom(const struct Options &options)
 {
   unsigned int seed = 0;
   if (mpi_rank == 0) {
-    // if (!options.seedFlag) {
-    //   std::ifstream randomIn("/dev/random");
-    //   randomIn.read(reinterpret_cast<char *>(&seed), sizeof(seed));
-    //   randomIn.close();
-    // } else {
-    //   seed = options.seed;
-    // }
-
-    std::ifstream randomIn("/dev/random");
-    randomIn.read(reinterpret_cast<char *>(&seed), sizeof(seed));
-    randomIn.close();
+    if (!options.seedFlag) {
+      std::ifstream randomIn("/dev/random");
+      randomIn.read(reinterpret_cast<char *>(&seed), sizeof(seed));
+      randomIn.close();
+    } else {
+      seed = options.seed;
+    }
 
     std::cout << "EXP " << options.currentRun << ": using seed "
         << std::hex << seed << std::dec << std::endl;
@@ -92,7 +88,7 @@ bool parseArgs(int argc, char ** argv, struct Options &options)
 
   options.numRuns = 1;
 
-  while ((c = getopt(argc, argv, "hi:f:k:d:t:s:r:m:")) != -1)
+  while ((c = getopt(argc, argv, "hi:f:k:d:t:s:r:m:x:")) != -1)
     {
       switch (c)
         {
@@ -130,10 +126,10 @@ bool parseArgs(int argc, char ** argv, struct Options &options)
             options.numRuns = std::atoi(optarg);
             break;
 
-          // case 'x':
-          //   options.seedFlag = true;
-          //   options.seed = std::atoi(optarg);
-          //   break;
+          case 'x':
+            options.seedFlag = true;
+            options.seed = std::atoi(optarg);
+            break;
 
           case 'm':
             options.meansFlag = true;
