@@ -342,10 +342,12 @@ inline void vector_to_mean_values(std::vector<std::vector<double>> v, double **m
   }
 }
 
-inline void assign_initial_points(D *data, uint64_t *meanSize, uint64_t *meanSizeBuff, double **meanValues, double *meanValuesBuff, B *belongsToMean) {
+template<typename D, typename B>
+inline void assign_initial_points(const struct Options &options, D *data, uint64_t *meanSize, uint64_t *meanSizeBuff, double **meanValues, double *meanValuesBuff, B *belongsToMean) {
+  // TODO init: create other assign pattern (such as sequential assignment of points to clusters)
   int mean;
 
-  for (uint64_t i = start; i < options.numLocalDataPoints; i++) {
+  for (uint64_t i = 0; i < options.numLocalDataPoints; i++) {
     mean = rand() % options.numMeans;
     setMean(belongsToMean, i, mean);
     meanSizeBuff[mean]++;
@@ -354,6 +356,10 @@ inline void assign_initial_points(D *data, uint64_t *meanSize, uint64_t *meanSiz
       meanValuesBuff[mean * options.dataDim + d] += getDataPoint(data, i, d);
     }
   }
+
+  //communicate the inital values for the means and sizes of the means
+  MPI_Allreduce(meanValuesBuff, meanValues[0], options.numMeans * options.dataDim, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+  MPI_Allreduce(meanSizeBuff, meanSize, options.numMeans, MPI_UINT64_T, MPI_SUM, MPI_COMM_WORLD);
 }
 
 template<typename D, typename B>
@@ -387,6 +393,7 @@ static inline void initialize_means_from_file(const struct Options &options,
   }
 
   vector_to_mean_values(v, meanValues);
+  assign_initial_points(options, data, meanSize, meanSizeBuff, meanValues, meanValuesBuff, belongsToMean);
 }
 
 template<typename D, typename B>

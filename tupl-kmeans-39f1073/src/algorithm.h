@@ -82,10 +82,10 @@ void kmeansRecalc(struct Options &options, const std::string &variant,
   } else {
     initializeMeans(options, data, meanSize, meanSizeBuff,
                     meanValues, meanValuesBuff, belongsToMean);
+    divideMeans(options, meanValues, meanSize);
   }
 
-  // TODO init: can I just skip this when initializing from file?
-  divideMeans(options, meanValues, meanSize);
+
 
   recordOldMeans(options,
                  const_cast<const double **>(meanValues), oldMeanValues,
@@ -93,7 +93,6 @@ void kmeansRecalc(struct Options &options, const std::string &variant,
 
   //execute the algorithm (this is where the magic happens)
   //NOTE: this is only one of several possible ways to code this
-  
   uint64_t reassigned = threshold + 1;
   uint64_t localReassigned, specialReassigned = 0;
   int cycles = 0;
@@ -188,11 +187,15 @@ void kmeansIncremental(struct Options &options, const std::string &variant,
                     meanValues, meanValuesBuff, belongsToMean);
   }
   
+  // TODO init: look into result mismatch
+
   //remember the old values and sizes of the means for recalculation
   memcpy(oldMeanValuesSum[0], meanValues[0], numMeans * dataDim * sizeof(double));
 
   // TODO init: can I just skip this when initializing from file?
-  divideMeans(options, meanValues, meanSize);
+  if (!options.meansFlag) {
+    divideMeans(options, meanValues, meanSize);
+  }
 
   recordOldMeans(options,
                  const_cast<const double **>(meanValues), oldMeanValues,

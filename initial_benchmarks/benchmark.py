@@ -373,7 +373,7 @@ def main():
                             help="Only validate results in current folder; overrides other arguments.")
     parser.add_argument("--commands-file", dest="commands-file", type=str, default=f"commands_{date}.txt",
                             help="Clean output scripts; overrides other arguments.")
-    parser.add_argument("--init-seed", dest="seed", type=int,
+    parser.add_argument("--init-seed", dest="init-seed", type=int,
                             help="MPI rank init seed")
     parser.add_argument("--means-set", "--m", dest="means-set", type=int, default=1,
                             help="Mean set to use for initialization")
