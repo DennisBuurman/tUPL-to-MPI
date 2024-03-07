@@ -57,6 +57,7 @@ void initRandom(const struct Options &options)
 static void
 showHelp(const char *progName)
 {
+  // TODO: update to include seed and mean set options
   if (mpi_rank == 0)
     std::cerr << "Usage: " << progName << " "
         << "-i input_dir -f format -k number_of_means -d convergence_delta "
@@ -191,8 +192,8 @@ int runVariant(int argc, char **argv, kMeansVariantFunc variantFunc)
   mpi_hostname[hostNameLength] = 0;
   
   struct Options options;
-  // options.seedFlag = false;
-  // options.seed = 0;
+  options.seedFlag = false;
+  options.seed = 0;
   options.meansFlag = false;
   options.meansSet = 0;
   if (!parseArgs(argc, argv, options))

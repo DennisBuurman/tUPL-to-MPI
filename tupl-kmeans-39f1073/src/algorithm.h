@@ -77,8 +77,6 @@ void kmeansRecalc(struct Options &options, const std::string &variant,
   if (options.meansFlag) {
     initialize_means_from_file(options, data, meanSize, meanSizeBuff,
                                meanValues, meanValuesBuff, belongsToMean);
-    // TODO init: assign initial points to cluster
-    // TODO: kmeansrecalc has segfault with this function enabled
   } else {
     initializeMeans(options, data, meanSize, meanSizeBuff,
                     meanValues, meanValuesBuff, belongsToMean);
@@ -100,6 +98,16 @@ void kmeansRecalc(struct Options &options, const std::string &variant,
     cycles++;
     localReassigned = 0;
     
+    if (mpi_rank == 0) {
+      std::cout << "CYCLE: " << cycles << "; REASSIGNED: " << localReassigned << std::endl;
+      std::cout << "MEANS: \n" 
+                << meanValues[0][0] << ", " << meanValues[0][1] << ", " << meanValues[0][2] << ", " << meanValues[0][3] << "\n"
+                << meanValues[1][0] << ", " << meanValues[1][1] << ", " << meanValues[1][2] << ", " << meanValues[1][3] << "\n"
+                << meanValues[2][0] << ", " << meanValues[2][1] << ", " << meanValues[2][2] << ", " << meanValues[2][3] << "\n"
+                << meanValues[3][0] << ", " << meanValues[3][1] << ", " << meanValues[3][2] << ", " << meanValues[3][3] << "\n"
+                << std::endl;
+    }
+
     reassignLocalDataPoints(options, localReassigned, data,
                             meanSize, meanValues, belongsToMean);
     
@@ -181,21 +189,16 @@ void kmeansIncremental(struct Options &options, const std::string &variant,
   if (options.meansFlag) {
     initialize_means_from_file(options, data, meanSize, meanSizeBuff,
                                meanValues, meanValuesBuff, belongsToMean);
-    // TODO init: assign initial points to cluster
   } else {
     initializeMeans(options, data, meanSize, meanSizeBuff,
                     meanValues, meanValuesBuff, belongsToMean);
+    divideMeans(options, meanValues, meanSize);
   }
   
   // TODO init: look into result mismatch
 
   //remember the old values and sizes of the means for recalculation
   memcpy(oldMeanValuesSum[0], meanValues[0], numMeans * dataDim * sizeof(double));
-
-  // TODO init: can I just skip this when initializing from file?
-  if (!options.meansFlag) {
-    divideMeans(options, meanValues, meanSize);
-  }
 
   recordOldMeans(options,
                  const_cast<const double **>(meanValues), oldMeanValues,
@@ -212,9 +215,19 @@ void kmeansIncremental(struct Options &options, const std::string &variant,
   while (reassigned > threshold) {
     cycles++;
     localReassigned = 0;
-    
+
     reassignLocalDataPoints(options, localReassigned, data,
                             meanSize, meanValues, belongsToMean);
+    
+    if (mpi_rank == 0) {
+      std::cout << "CYCLE: " << cycles << "; REASSIGNED: " << localReassigned << std::endl;
+      std::cout << "MEANS: \n" 
+                << meanValues[0][0] << ", " << meanValues[0][1] << ", " << meanValues[0][2] << ", " << meanValues[0][3] << "\n"
+                << meanValues[1][0] << ", " << meanValues[1][1] << ", " << meanValues[1][2] << ", " << meanValues[1][3] << "\n"
+                << meanValues[2][0] << ", " << meanValues[2][1] << ", " << meanValues[2][2] << ", " << meanValues[2][3] << "\n"
+                << meanValues[3][0] << ", " << meanValues[3][1] << ", " << meanValues[3][2] << ", " << meanValues[3][3] << "\n"
+                << std::endl;
+    }
     
     // communicate whether all processes have converged
     MPI_Allreduce(&localReassigned, &reassigned, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);

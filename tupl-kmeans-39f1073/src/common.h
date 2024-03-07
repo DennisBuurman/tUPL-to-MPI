@@ -321,18 +321,22 @@ static inline void initializeMeans(const struct Options &options,
   MPI_Allreduce(meanSizeBuff, meanSize, options.numMeans, MPI_UINT64_T, MPI_SUM, MPI_COMM_WORLD);
 }
 
-inline std::vector<double> split_line(const std::string line) {
-  std::vector<double> v;
-  std::stringstream ss(line);
-  std::string s;
+// // TODO: fix inner vector
+// inline std::vector<double> split_line(const std::string line) {
+//   std::vector<double> v;
+//   std::stringstream ss(line);
+//   std::string s;
 
-  getline(ss, s, ' '); // skip point index
-  while (getline(ss, s, ' ')) {
-    v.push_back(std::stod(s));
-  }
+//   getline(ss, s, ' '); // skip point index
+//   while (getline(ss, s, ' ')) {
+//     if (mpi_rank == 0) {
+//       std::cout << ">>>>>> S: " << s << std::endl;
+//     }
+//     v.push_back(std::stod(s));
+//   }
 
-  return v;
-}
+//   return v;
+// }
 
 inline void vector_to_mean_values(std::vector<std::vector<double>> v, double **meanValues) {
   for (unsigned int i = 0; i < v.size(); i++) {
@@ -370,15 +374,16 @@ static inline void initialize_means_from_file(const struct Options &options,
                                               double **meanValues,
                                               double *meanValuesBuff,
                                               B *belongsToMean) {
-  // TODO INIT: check array contents
   std::fill(meanSizeBuff, meanSizeBuff + options.numMeans, 1);
   std::fill(meanValuesBuff, meanValuesBuff + options.numMeans * options.dataDim, 0.0);
 
-  std::vector<std::vector<double>> v;
+  int count = 0;
+  std::vector<std::vector<double>> v_i;
+  std::vector<double> v_j;
   std::string filename = options.inputDir;
   filename += + "/initial_means_" + std::to_string(options.meansSet) + ".txt";
   std::ifstream f(filename);
-  std::string line;
+  std::string str;
 
   if (!f.is_open()) {
     std::cerr << "ERROR: unable to open file " << filename << std::endl;
@@ -388,11 +393,31 @@ static inline void initialize_means_from_file(const struct Options &options,
               << filename << "'" << std::endl;
   }
 
-  while (f >> line) {
-    v.push_back(split_line(line));
+  while (f >> str) {
+    if (count > 0) {
+      v_j.push_back(std::stod(str));
+    }
+
+    // use dim instead of dim+1 because index is skipped
+    if (count == options.dataDim) {
+      v_i.push_back(v_j);
+      v_j.clear();
+      count = -1; // skip next index by resetting count (-1+1=0)
+    }
+    count++;
   }
 
-  vector_to_mean_values(v, meanValues);
+  vector_to_mean_values(v_i, meanValues);
+
+  if (mpi_rank == 0) {
+      std::cout << "INITIAL MEANS: \n" 
+                << meanValues[0][0] << ", " << meanValues[0][1] << ", " << meanValues[0][2] << ", " << meanValues[0][3] << "\n"
+                << meanValues[1][0] << ", " << meanValues[1][1] << ", " << meanValues[1][2] << ", " << meanValues[1][3] << "\n"
+                << meanValues[2][0] << ", " << meanValues[2][1] << ", " << meanValues[2][2] << ", " << meanValues[2][3] << "\n"
+                << meanValues[3][0] << ", " << meanValues[3][1] << ", " << meanValues[3][2] << ", " << meanValues[3][3] << "\n"
+                << std::endl;
+  }
+
   assign_initial_points(options, data, meanSize, meanSizeBuff, meanValues, meanValuesBuff, belongsToMean);
 }
 
