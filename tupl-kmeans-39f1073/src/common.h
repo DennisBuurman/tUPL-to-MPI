@@ -321,23 +321,6 @@ static inline void initializeMeans(const struct Options &options,
   MPI_Allreduce(meanSizeBuff, meanSize, options.numMeans, MPI_UINT64_T, MPI_SUM, MPI_COMM_WORLD);
 }
 
-// // TODO: fix inner vector
-// inline std::vector<double> split_line(const std::string line) {
-//   std::vector<double> v;
-//   std::stringstream ss(line);
-//   std::string s;
-
-//   getline(ss, s, ' '); // skip point index
-//   while (getline(ss, s, ' ')) {
-//     if (mpi_rank == 0) {
-//       std::cout << ">>>>>> S: " << s << std::endl;
-//     }
-//     v.push_back(std::stod(s));
-//   }
-
-//   return v;
-// }
-
 inline void vector_to_mean_values(std::vector<std::vector<double>> v, double **meanValues) {
   for (unsigned int i = 0; i < v.size(); i++) {
     for (unsigned int j = 0; j < v[i].size(); j++) {
@@ -362,7 +345,7 @@ inline void assign_initial_points(const struct Options &options, D *data, uint64
   }
 
   //communicate the inital values for the means and sizes of the means
-  MPI_Allreduce(meanValuesBuff, meanValues[0], options.numMeans * options.dataDim, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+  // MPI_Allreduce(meanValuesBuff, meanValues[0], options.numMeans * options.dataDim, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
   MPI_Allreduce(meanSizeBuff, meanSize, options.numMeans, MPI_UINT64_T, MPI_SUM, MPI_COMM_WORLD);
 }
 
@@ -408,16 +391,6 @@ static inline void initialize_means_from_file(const struct Options &options,
   }
 
   vector_to_mean_values(v_i, meanValues);
-
-  if (mpi_rank == 0) {
-      std::cout << "INITIAL MEANS: \n" 
-                << meanValues[0][0] << ", " << meanValues[0][1] << ", " << meanValues[0][2] << ", " << meanValues[0][3] << "\n"
-                << meanValues[1][0] << ", " << meanValues[1][1] << ", " << meanValues[1][2] << ", " << meanValues[1][3] << "\n"
-                << meanValues[2][0] << ", " << meanValues[2][1] << ", " << meanValues[2][2] << ", " << meanValues[2][3] << "\n"
-                << meanValues[3][0] << ", " << meanValues[3][1] << ", " << meanValues[3][2] << ", " << meanValues[3][3] << "\n"
-                << std::endl;
-  }
-
   assign_initial_points(options, data, meanSize, meanSizeBuff, meanValues, meanValuesBuff, belongsToMean);
 }
 

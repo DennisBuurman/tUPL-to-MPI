@@ -84,7 +84,6 @@ void kmeansRecalc(struct Options &options, const std::string &variant,
   }
 
 
-
   recordOldMeans(options,
                  const_cast<const double **>(meanValues), oldMeanValues,
                  const_cast<const uint64_t *>(meanSize), oldMeanSize);
@@ -97,16 +96,6 @@ void kmeansRecalc(struct Options &options, const std::string &variant,
   while (reassigned > threshold) {
     cycles++;
     localReassigned = 0;
-    
-    if (mpi_rank == 0) {
-      std::cout << "CYCLE: " << cycles << "; REASSIGNED: " << localReassigned << std::endl;
-      std::cout << "MEANS: \n" 
-                << meanValues[0][0] << ", " << meanValues[0][1] << ", " << meanValues[0][2] << ", " << meanValues[0][3] << "\n"
-                << meanValues[1][0] << ", " << meanValues[1][1] << ", " << meanValues[1][2] << ", " << meanValues[1][3] << "\n"
-                << meanValues[2][0] << ", " << meanValues[2][1] << ", " << meanValues[2][2] << ", " << meanValues[2][3] << "\n"
-                << meanValues[3][0] << ", " << meanValues[3][1] << ", " << meanValues[3][2] << ", " << meanValues[3][3] << "\n"
-                << std::endl;
-    }
 
     reassignLocalDataPoints(options, localReassigned, data,
                             meanSize, meanValues, belongsToMean);
@@ -194,8 +183,6 @@ void kmeansIncremental(struct Options &options, const std::string &variant,
                     meanValues, meanValuesBuff, belongsToMean);
     divideMeans(options, meanValues, meanSize);
   }
-  
-  // TODO init: look into result mismatch
 
   //remember the old values and sizes of the means for recalculation
   memcpy(oldMeanValuesSum[0], meanValues[0], numMeans * dataDim * sizeof(double));
@@ -203,7 +190,6 @@ void kmeansIncremental(struct Options &options, const std::string &variant,
   recordOldMeans(options,
                  const_cast<const double **>(meanValues), oldMeanValues,
                  const_cast<const uint64_t *>(meanSize), oldMeanSize);
-  
   
   //execute the algorithm (this is where the magic happens)
   //NOTE: this is only one of several possible ways to code this
@@ -235,7 +221,7 @@ void kmeansIncremental(struct Options &options, const std::string &variant,
     
     // now communicate the new values for the means between processes
     reassignedSinceRecalculation += reassigned;
-    if (reassignedSinceRecalculation > REASSIGN_LIMIT) {
+    if (reassignedSinceRecalculation > REASSIGN_LIMIT || cycles < 2) {
       if (mpi_rank == 0) {
         std::cout << "recalculating due to rounding errors" << std::endl;
       }
