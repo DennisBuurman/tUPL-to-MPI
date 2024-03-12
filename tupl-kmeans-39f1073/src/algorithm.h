@@ -212,6 +212,7 @@ void kmeansIncremental(struct Options &options, const std::string &variant,
     // now communicate the new values for the means between processes
     reassignedSinceRecalculation += reassigned;
     if (reassignedSinceRecalculation > REASSIGN_LIMIT || cycles < 2) {
+      // TODO: only do cycles check when mean set flag is set!
       if (mpi_rank == 0) {
         std::cout << "recalculating due to rounding errors" << std::endl;
       }
