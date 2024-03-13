@@ -53,6 +53,7 @@ class Dataset {
         uint64_t numDataPoints; // amount of datapoints
         std::string outdir; // output directory
         std::default_random_engine generator; // generator used for generating points
+        std::mt19937 mean_generator; // generator used for initial mean sets
 
         // Dataset vectors
         std::vector<std::vector<double>> clusterCenters;  // 2d vector of cluster centers

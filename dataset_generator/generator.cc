@@ -26,8 +26,9 @@ Dataset::Dataset(const int seed_, const int size_, const int numClusters_, const
     numClusters = numClusters_;
     dataDim = dataDim_;
     numDataPoints = 1 << size;
-    generator.seed(seed);
     outdir = outdir_;
+    generator.seed(seed);
+    mean_generator.seed(seed);
 
     clusterSize.insert(clusterSize.begin(), numClusters, 0);
 }
@@ -183,10 +184,10 @@ void Dataset::generate_initial_means() {
     std::vector<double> point, centroid;
 
     // Randomly select first centroid (uniformly)
-    std::random_device rand_dev;
-    std::mt19937 g(rand_dev());
+    // std::random_device rand_dev;
+    // std::mt19937 g(rand_dev());
     std::uniform_int_distribution<uint64_t> dist(0, numDataPoints-1);
-    centroid_index = dist(g);
+    centroid_index = dist(mean_generator);
     means.push_back(centroid_index);
 
     // Select remaining k - 1 initial cluster centroids

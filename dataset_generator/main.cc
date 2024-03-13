@@ -100,17 +100,18 @@ int main(int argc, char *argv[]) {
     // Generate cluster means and standard deviations
     dataset->generate_cluster_means();
     dataset->generate_cluster_std_devs();
-    // Generate default dataset and upscale/downscale it
+    // Generate default dataset
     dataset->generate_dataset();
-    if (size_difference > 0) {
-        dataset->upscale_dataset(size_difference);
-    } else if (size_difference < 0) {
-        std::cerr << "ERROR: requested size " << size << " smaller than minimum size " << MINIMUM_SIZE << std::endl;
-    }
     // Generate sets of initial means that can be supplied to algorithms
     std::cout << "Generating " << MEAN_SETS << " sets of initial means..." << std::endl;
     for (int i = 0; i < MEAN_SETS; i++) {
         dataset->generate_initial_means();
+    }
+    // Resize dataset by duplication
+    if (size_difference > 0) {
+        dataset->upscale_dataset(size_difference);
+    } else if (size_difference < 0) {
+        std::cerr << "ERROR: requested size " << size << " smaller than minimum size " << MINIMUM_SIZE << std::endl;
     }
     // Write dataset to files
     std::cout << "Writing output to files..." << std::endl;
