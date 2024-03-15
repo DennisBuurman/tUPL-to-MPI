@@ -47,7 +47,7 @@ ex2_config: Dict[str, any] = {
     "DAS5": {
         "seed": "971",
         "variant": "own own_inc own_loc own_inc_loc",
-        "size": "26",
+        "size": "28",
         "clusters": [4],
         "dimension": [4],
         "nodes": [[1], [1, 2, 3, 4, 5, 6, 7, 8, 12, 16]],
@@ -57,7 +57,7 @@ ex2_config: Dict[str, any] = {
     "DAS6": {
         "seed": "971",
         "variant": "own own_inc own_loc own_inc_loc",
-        "size": "26",
+        "size": "28",
         "clusters": [4],
         "dimension": [4],
         "nodes": [[1], [1, 2], [1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 14, 16]],
