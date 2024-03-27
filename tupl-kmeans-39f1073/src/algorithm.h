@@ -54,6 +54,10 @@ void kmeansRecalc(struct Options &options, const std::string &variant,
 {
   double start_time, end_time;
 
+  // Time the individual parts of computation
+  double it_start_time, it_reassign_time, it_update_time, it_end_time;
+  double cum_reassign_time = 0.0, cum_update_time = 0.0, cum_it_end_time = 0.0;
+
   //define local variables for the often used options
   const int numMeans(options.numMeans);
   const uint64_t numDataPoints(options.numDataPoints);
@@ -94,16 +98,22 @@ void kmeansRecalc(struct Options &options, const std::string &variant,
   uint64_t localReassigned, specialReassigned = 0;
   int cycles = 0;
   while (reassigned > threshold) {
+    it_start_time = MPI_Wtime();  // at start of iteration
+
     cycles++;
     localReassigned = 0;
 
     reassignLocalDataPoints(options, localReassigned, data,
                             meanSize, meanValues, belongsToMean);
     
+    it_reassign_time = MPI_Wtime();  // after reassignment
+
     // now recalculate means (by communication) and check whether we are done
     recalcMeans(options, data, meanSize, meanSizeBuff,
                 meanValues, meanValuesBuff, belongsToMean);
     
+    it_update_time = MPI_Wtime();  // after updating the means
+
     //check to avoid empty clusters, if so, reassign a point to fill them
     ensureNoEmptyClusters(options, specialReassigned,
                           data, meanSize, meanValues, belongsToMean);
@@ -120,6 +130,13 @@ void kmeansRecalc(struct Options &options, const std::string &variant,
 
     // communicate whether all processes have converged
     MPI_Allreduce(&localReassigned, &reassigned, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+
+    it_end_time = MPI_Wtime();  // at end of iteration
+
+    // Update timing variables
+    cum_reassign_time += it_reassign_time - it_start_time;
+    cum_update_time += it_update_time - it_reassign_time;
+    cum_it_end_time += it_end_time - it_update_time;
   }
   
   //log the end time and elapsed time
@@ -128,6 +145,25 @@ void kmeansRecalc(struct Options &options, const std::string &variant,
             << " calculationTime "
             << end_time - start_time << " seconds" << std::endl;
   
+  //log the time spent in each component
+  if (mpi_rank == 0) {
+    std::cout << "TIME EXP " << options.currentRun << ": " << printPreamble()
+              << " reassign time "
+              << cum_reassign_time
+              << " | average  "
+              << cum_reassign_time / cycles << " seconds" << std::endl;
+    std::cout << "TIME EXP " << options.currentRun << ": " << printPreamble()
+              << " update time "
+              << cum_update_time 
+              << " | average "
+              << cum_update_time / cycles << " seconds" << std::endl;
+    std::cout << "TIME EXP " << options.currentRun << ": " << printPreamble()
+              << " mean recalculation time "
+              << cum_it_end_time
+              << " | average "
+              << cum_it_end_time / cycles << " seconds" << std::endl;
+  }
+
   if (mpi_rank == 0)
     std::cout << "EXP " << options.currentRun << ": iterations "
               << cycles << std::endl;
@@ -153,6 +189,10 @@ void kmeansIncremental(struct Options &options, const std::string &variant,
                        D *data, B *belongsToMean)
 {
   double start_time, end_time;
+
+  // Time the individual parts of computation
+  double it_start_time, it_reassign_time, it_update_time, it_end_time;
+  double cum_reassign_time = 0.0, cum_update_time = 0.0, cum_it_end_time = 0.0;
 
   const int numMeans(options.numMeans);
   const uint64_t numDataPoints(options.numDataPoints);
@@ -199,12 +239,16 @@ void kmeansIncremental(struct Options &options, const std::string &variant,
   uint64_t reassignedSinceRecalculation = 0;
   int cycles = 0;
   while (reassigned > threshold) {
+    it_start_time = MPI_Wtime();  // at start of iteration
+
     cycles++;
     localReassigned = 0;
 
     reassignLocalDataPoints(options, localReassigned, data,
                             meanSize, meanValues, belongsToMean);
     
+    it_reassign_time = MPI_Wtime();  // after reassignment
+
     // communicate whether all processes have converged
     MPI_Allreduce(&localReassigned, &reassigned, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
     //TODO: usefull to add a break if no reassignments are made?
@@ -229,6 +273,8 @@ void kmeansIncremental(struct Options &options, const std::string &variant,
                   meanValues, meanValuesBuff, const_cast<const double **>(oldMeanValuesSum));
     }
     
+    it_update_time = MPI_Wtime();  // after updating the means
+
     //check to avoid empty clusters, if so, reassign a point to fill them
     ensureNoEmptyClusters(options, specialReassigned,
                           data, meanSize, meanValues, belongsToMean);
@@ -245,6 +291,13 @@ void kmeansIncremental(struct Options &options, const std::string &variant,
     recordOldMeans(options,
                    const_cast<const double **>(meanValues), oldMeanValues,
                    const_cast<const uint64_t *>(meanSize), oldMeanSize);
+    
+    it_end_time = MPI_Wtime();  // at end of iteration
+
+    // Update timing variables
+    cum_reassign_time += it_reassign_time - it_start_time;
+    cum_update_time += it_update_time - it_reassign_time;
+    cum_it_end_time += it_end_time - it_update_time;
   }
   
   //log the end time and elapsed time
@@ -253,6 +306,25 @@ void kmeansIncremental(struct Options &options, const std::string &variant,
             << " calculationTime "
             << end_time - start_time << " seconds" << std::endl;
   
+  //log the time spent in each component
+  if (mpi_rank == 0) {
+    std::cout << "TIME EXP " << options.currentRun << ": " << printPreamble()
+              << " reassign time "
+              << cum_reassign_time
+              << " | average  "
+              << cum_reassign_time / cycles << " seconds" << std::endl;
+    std::cout << "TIME EXP " << options.currentRun << ": " << printPreamble()
+              << " update time "
+              << cum_update_time 
+              << " | average "
+              << cum_update_time / cycles << " seconds" << std::endl;
+    std::cout << "TIME EXP " << options.currentRun << ": " << printPreamble()
+              << " mean recalculation time "
+              << cum_it_end_time
+              << " | average "
+              << cum_it_end_time / cycles << " seconds" << std::endl;
+  }
+
   if (mpi_rank == 0)
     std::cout << "EXP " << options.currentRun << ": iterations "
               << cycles << std::endl;
