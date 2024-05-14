@@ -66,7 +66,7 @@ ex2_config: Dict[str, any] = {
     }
 }
 
-execs: List[str] = ["own", "own_inc", "own_loc", "own_inc_loc"]
+execs: List[str] = ["own", "own_inc", "own_loc", "own_inc_loc"] #, "own_values_only"]
 debug = False
 
 def exists(file: str) -> bool:

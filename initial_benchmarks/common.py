@@ -28,7 +28,8 @@ names: Dict[str, str] = {
     "own": "Implementation 1",
     "own_inc": "Implementation 2",
     "own_loc": "Implementation 3",
-    "own_inc_loc": "Implementation 4"
+    "own_inc_loc": "Implementation 4",
+    "own_values_only": "Implementation 5"
 }
 
 def add_parameters(parser: ArgumentParser) -> None:

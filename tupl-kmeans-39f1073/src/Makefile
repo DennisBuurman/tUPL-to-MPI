@@ -5,7 +5,8 @@ TARGETS = \
 	MPI_Kmeans		\
 	MPI_Kmeans_incremental	\
 	MPI_Kmeans_localized	\
-	MPI_Kmeans_incremental_localized
+	MPI_Kmeans_incremental_localized	\
+	MPI_Kmeans_values_only
 
 HEADERS = mpi-utils.h common.h algorithm.h
 
@@ -25,6 +26,9 @@ MPI_Kmeans_incremental:	MPI_Kmeans_incremental.cpp $(OBJS) $(HEADERS)
 			$(CXX) $(CXXFLAGS) -o $@ $^
 
 MPI_Kmeans_incremental_localized:	MPI_Kmeans_incremental_localized.cpp $(OBJS) $(HEADERS)
+					$(CXX) $(CXXFLAGS) -o $@ $^
+
+MPI_Kmeans_values_only:	MPI_Kmeans_values_only.cc $(OBJS) $(HEADERS)
 					$(CXX) $(CXXFLAGS) -o $@ $^
 
 

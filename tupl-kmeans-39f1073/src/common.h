@@ -281,6 +281,17 @@ static inline void divideMeans(const struct Options &options,
   }
 }
 
+static inline void divideMeansValuesOnly(const struct Options &options,
+                               double **meanValues,
+                               uint64_t *meanSize)
+{
+  for (int i = 0; i < options.numMeans; i++) {
+    for (int d = 0; d < options.dataDim; d++) {
+      meanValues[i][d] = meanValues[i][d] / (meanSize[i] * mpi_size);
+    }
+  }
+}
+
 template<typename D, typename B>
 static inline void initializeMeans(const struct Options &options,
                                    D *data,
@@ -417,6 +428,25 @@ static inline void recalcMeans(const struct Options &options,
 
   MPI_Allreduce(meanValuesBuff,meanValues[0], options.numMeans * options.dataDim, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
   MPI_Allreduce(meanSizeBuff, meanSize, options.numMeans, MPI_UINT64_T, MPI_SUM, MPI_COMM_WORLD);
+}
+
+template<typename D, typename B>
+static inline void recalcMeansValuesOnly(const struct Options &options,
+                               D *data,
+                               double **meanValues,
+                               double *meanValuesBuff,
+                               B *belongsToMean)
+{
+  std::fill(meanValuesBuff,
+            meanValuesBuff + options.numMeans * options.dataDim, 0.0);
+
+  for (uint64_t i = 0; i < options.numLocalDataPoints; i++) {
+    for (int d = 0; d < options.dataDim; d++) {
+      meanValuesBuff[getMean(belongsToMean, i) * options.dataDim + d] += getDataPoint(data, i, d);
+    }
+  }
+
+  MPI_Allreduce(meanValuesBuff,meanValues[0], options.numMeans * options.dataDim, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
 }
 
 static inline void updateMeans(const struct Options &options,
