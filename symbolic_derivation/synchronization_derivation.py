@@ -1,13 +1,20 @@
 #!/usr/bin/env python3
 
 # 
-# ...
+# This file contains a proof-of-concept k-means synchronization deduction.
+# The idea is that deductions required to perform sync. delay transformations can be done programatically.
+# If done programatically, there is a high chance that it can be automated.
 # 
 # Author: Dennis Buurman, Leiden University
+
+# TODO: look at IndexedBase, Indexed, and Idx for better proof!
+# https://stackoverflow.com/questions/75493900/using-sympy-to-sum-over-a-range-of-symbols
 
 import sys
 
 from sympy import *
+from sympy.simplify.simplify import sum_combine
+
 """
 1) PM_C[PM[i]] = (PM_C[PM[i]] * PM_S[PM[i]] - PC[i])/(PM_S[PM[i]] - 1)\n
 2) PM_S[PM[i]] = PM_S[PM[i]] - 1\n
@@ -16,6 +23,7 @@ from sympy import *
 5) PM[i]       = m
 """
 pmc, pms, pm, pc = symbols('pmc pms pm pc', integer=True, positive=True) # non-function symbols
+
 equations = {
     1 : - pmc + (pmc * pms - pc) / (pms - 1),
     2 : - pms + pms - 1,
@@ -51,17 +59,21 @@ f_expressions = {
     4 : s(n) + 1
 } # function expressions
 
-# TODO: rewrite print statement
 def print_equation(f, x, a):
     """ Prints a function 'f' and the result 'a' of solving 'f' for 'x'."""
-    print(f"f({x}): {f} = 0 -> {a}")
+    s = f"{f} = 0 -> {x} = {a}"
+    print("-"*len(s))
+    print(s)
+    print("-"*len(s))
 
-# TODO: rewrite print statement
 def print_linear_equation(F, x, a):
     """ Prints a set of functions 'F' and the result 'a' of solving 'F' for 'x'."""
+    s = f"-> {x} = {a}"
+    print("-"*len(s))
     for f in F:
         print("{", f)
-    print(f"f({x}) -> {a}")
+    print(s)
+    print("-"*len(s))
 
 def regular_solve(debug=True):
     """ Tries to solve the equations using the sympy.solve function."""
@@ -248,8 +260,8 @@ def recurrent_solve(debug=True):
 
     return ans
 
-def kmeans_deduction() -> None:
-    """ Creates a deduction using write operations from the tUPL k-means 'core' loop body. """
+def solving_trial() -> None:
+    """ Tries to solve the write operations from the tUPL k-means 'core' loop body for different terms. """
     debug = False
     ans = []
 
@@ -265,31 +277,101 @@ def kmeans_deduction() -> None:
     # This leaves only eq. 2 and 4
     ans += recurrent_solve(debug)
 
-    ### Deduction steps
-    
+    if debug:
+        print(ans)
+
+# TODO: refine summation deduction
+def simple_deduction():
+    """ Creates a deduction using functions and substitutions. """
     # (1) s(n) = s(n-1) + 1 substitution
     f = f_equations[4]
     x = s(n)
     a = solve(f, x)
+    print("(1):")
     print_equation(f, x, a)
 
     # (2) applying (1) to equation 3 and solve for p(n-1)
-    f = f_equations[3].subs(s(n-1)+1, s(n))
+    f = f_equations[3].subs(a[0], x)
     x = p(n-1)
     a = solve(f, x)
-    ans.append((f, x, a))
+    print("(2):")
     print_equation(f, x, a)
 
-    # (3) ...
+    # (3) Substitute c()*s() with A() to simplify
+    A = Function("A") # substitute function for composite c()*s()
+    f = a[0] - x
+    f = f.subs(c(n)*s(n), A(n)).subs(c(n-1)*s(n-1), A(n-1))
+    x = p(n-1) # solve for c(n)*s(n)
+    a = solve(f, x)
+    print("(3):")
+    print_equation(f, x, a)
 
-    ### END
+    # (4) substitute n with 1 for base case
+    f1 = f.subs(n, 1)
+    x1 = A(1)
+    a1 = solve(f1, x1)
+    print("(4):")
+    print_equation(f1, x1, a1)
 
-    if debug:
-        print(ans)
+    # (5) substitute n with 2 for next step
+    f2 = f.subs(n, 2)
+    x2 = A(2)
+    a2 = solve(f2, x2)
+    print("(5):")
+    print_equation(f2, x2, a2)
+
+    # (6) substitute A(1) with A(0) + p(0)
+    f3 = f2.subs(x1, a1[0])
+    x3 = A(2)
+    a3 = solve(f3, x3)
+    print("(6):")
+    print_equation(f3, x3, a3)
+
+    # (7) do a third step for the fun of it
+    f4 = f.subs(n, 3)
+    x4 = A(3)
+    a4 = solve(f4, x4)
+    print("(7):")
+    print_equation(f4, x4, a4)
+
+    # (8) substitute A(2) ...
+    f5 = f4.subs(x3, a3[0])
+    x5 = A(3)
+    a5 = solve(f5, x5)
+    print("(8):")
+    print_equation(f5, x5, a5)
+
+    # (9) revert steps back to n
+    f6 = f5.subs([(A(3), A(n)), (A(0), A(n-3)), (p(0), p(n-3)), (p(1), p(n-2)), (p(2), p(n-1))])
+    x6 = A(n)
+    a6 = solve(f6, x6)
+    print("(9):")
+    print_equation(f6, x6, a6)
+
+    # (10) revert -3 back to -i simplify into summation
+    j = symbols("j", positive=True, integer=True)
+    psum = Sum(p(j),(j, i, n-1))
+    f7 = f6.subs([(A(n-3), A(n-i)), (a6[0].subs(A(n-3), 0), psum)])
+    x7 = A(n)
+    a7 = solve(f7, x7)
+    print("(10):")
+    print_equation(f7, x7, a7)
+
+    msg  = "Now, we only need to assume that A(0) = 0 in order to receive a summation from 0 to n - 1.\n"
+    msg += "Then we would rewrite the summation to A(n-1) + p(n-1) = Sum(p(i), (i, 0, n-1)) and substitute it in the original equation.\n"
+    msg += "This results in the 'i'-level variant. Substitute the summation back to the form c(n)*s(n) to receive the 'm' level variant. \n"
+    msg += "As the denominator only contains one generator we can simply use rsolve, which results in 'n' === Sum(1, (i, 0, n-1))."
+    print(msg)
+
+# TODO: implement
+def indexed_deduction():
+    pass
 
 def main():
     init_printing(use_unicode=True)
-    kmeans_deduction()
+    # solving_trial()
+    simple_deduction()
+    indexed_deduction()
 
 if __name__ == "__main__":
     sys.exit(main())
