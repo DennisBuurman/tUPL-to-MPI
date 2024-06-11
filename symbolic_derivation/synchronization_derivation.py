@@ -280,6 +280,85 @@ def solving_trial() -> None:
     if debug:
         print(ans)
 
+# TODO: break into multiple functions
+def expr_to_sum(expr, x, symbol, start: int = None, end: int = None):
+    """ Tries to find and substitute recurrence with sum-notation using mathematical induction. \n 
+        This is done by filling in 'symbol' for [start, end] in 'expr'. \n
+        returns the new expression. """
+    ans = 0
+    E = []
+    stop = False
+    i = symbols('i', integer=True, positive=True)
+    j = symbols('j', integer=True, positive=True)
+    k: int = start
+    while not stop:
+        # Fill in k and solve e_k for x_k
+        e_k = expr.subs(n, k)
+        x_k = x.subs(n, k)
+        dummy = solve(e_k, x_k)[0]
+        E.append((x_k, dummy))
+        
+        # Check if substitution chain results in summation
+        if k > start + 2:
+            e_prev = E[0] # set the first expr in E as previous
+            changes = [e_prev[1]] # record changes after each subs, starting with the rhs of the first e
+            for e in E[1:]:
+                dummy = e[1].subs(e_prev[0], e_prev[1])
+                changes.append(dummy - e_prev[1])
+                e_prev = (e[0], dummy)
+            # Gather changes and try to 'summify' them
+            print(e_prev)
+            print(changes)
+            sums = {}
+            for step in range(len(changes)):
+                dummy = changes[step].subs(step, i)
+                # TODO: make recursively go through args
+                if len(dummy.args) > 1:
+                    for d in dummy.args:
+                        if d not in sums:
+                            sums[d] = [d.subs(i, step)]
+                        else:
+                            sums[d].append(d.subs(i, step))
+                elif d not in sums:
+                    sums[d] = [d.subs(i, step)]
+                else:
+                    sums[d].append(d.subs(i, step))
+            print(sums)
+            for key in sums:
+                sum_list = sums[key]
+                if len(sum_list) > 1:
+                    i_start = sum_list[0].args[0] # extract i from p(i)
+                    i_end = sum_list[-1].args[0] # extract i from p(i)
+                    step_size = sum_list[1].args[0] - sum_list[0].args[0] # difference between steps
+                    equal_step_size = True
+                    if len(sum_list) > 2:
+                        prev = sum_list[1].args[0]
+                        for s in sum_list[2:]:
+                            if s.args[0] - prev != step_size:
+                                equal_step_size = False
+                                break
+                            prev = s.args[0]
+                    if step_size == 1:
+                        ans = ans + Sum(key.subs(i, j), (j, i_start, i_end))
+                    else:
+                        print(f"WARNING: expression has step size {step_size}. Summation may be possible, but is not automation is not implemented yet!")
+                        return expr
+                    print(f"start, end: {i_start}, {i_end}")
+                else:
+                    # add singular to result expression
+                    ans = ans + sum_list[0]
+            ans = ans - e_prev[0]
+            print(f"ANS: {ans}")
+            # Now substitute the integer start with var i and the current step k with n
+            ans = ans.subs([(k, n), (k-1, n-1), (start-1, n-i)])
+            print(f"ANS: {ans}")
+            stop = True
+        k += 1
+    
+    print(E)
+
+    return ""
+
 # TODO: refine summation deduction
 def simple_deduction():
     """ Creates a deduction using functions and substitutions. """
@@ -305,6 +384,10 @@ def simple_deduction():
     a = solve(f, x)
     print("(3):")
     print_equation(f, x, a)
+
+    a0 = solve(f, A(n))
+    print(expr_to_sum(a0[0]-A(n), A(n), n, 1))
+    return
 
     # (4) substitute n with 1 for base case
     f1 = f.subs(n, 1)
