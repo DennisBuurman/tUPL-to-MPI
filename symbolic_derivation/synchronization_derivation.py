@@ -44,6 +44,7 @@ m = Function('m') # PM
 p = Function('p') # PC
 n = symbols('n', integer=True, positive=True)
 i = symbols('i', integer=True, positive=True)
+j = symbols("j", positive=True, integer=True)
 
 f_equations = {
     1 : - c(n) + (c(n-1) * s(n-1) - p(n-1)) / (s(n-1) - 1),
@@ -280,86 +281,114 @@ def solving_trial() -> None:
     if debug:
         print(ans)
 
-# TODO: break into multiple functions
-def expr_to_sum(expr, x, symbol, start: int = None, end: int = None):
-    """ Tries to find and substitute recurrence with sum-notation using mathematical induction. \n 
-        This is done by filling in 'symbol' for [start, end] in 'expr'. \n
-        returns the new expression. """
-    ans = 0
-    E = []
-    stop = False
-    i = symbols('i', integer=True, positive=True)
-    j = symbols('j', integer=True, positive=True)
+def get_subs_chain(base, generated):
+    chain = [base]
+    prev_x, prev_expr = base
+    for x, expr in generated:
+        prev_x, prev_expr = (x, expr.subs(prev_x, prev_expr))
+        chain.append((prev_x, prev_expr))
+    return chain
+
+def get_chain_changes(chain):
+    if len(chain) < 1:
+        return []
+    changes = [chain[0][1]]
+    if len(chain) < 2:
+        return changes
+    prev = chain[0][1]
+    for x in chain[1:]:
+        changes.append(x[1] - prev)
+        prev = x[1]
+    return changes
+
+def extract_args(expr):
+    args = []
+    if len(expr.args) > 1:
+        for subexpr in expr.args:
+            for arg in extract_args(subexpr):
+                args.append(arg)
+    elif len(expr.args) == 1:
+        args = [expr.args[0]]
+    return args
+
+# TODO: compare expr.atoms() with expr.args extraction methods
+def get_components(changes):
+    components = {}
+    for c in changes:
+        args = extract_args(c)
+        sets = [(c.args[x], args[x]) if len(c.args) > 1 else (c, args[x]) for x in range(len(args))]
+        for s in sets:
+            arg = s[0]
+            arg_i = arg.subs([(value, i) for _, value in sets])
+            if arg_i not in components:
+                components[arg_i] = [arg]
+            else:
+                components[arg_i].append(arg)
+        # for atom in c.atoms(Function):
+        #     print(f"atom: {atom}")
+    return components
+
+def gather_sum(component_key, values):
+    if len(values) == 1:
+        return values[0]
+    elif len(values) > 1:
+        summable = True
+        indexes = [extract_args(x)[0] for x in values]
+        low = min(indexes)
+        up = max(indexes)
+        step = indexes[1] - indexes[0]
+        if (False in [True if indexes[x] - indexes[x-1] == step else False for x in range(1, len(indexes))]):
+            summable = False
+        if summable:
+            if step == 1:
+                return Sum(component_key.subs(i, j), (j, low, up))
+            else:
+                print("WARNING: step size > 1 not implemented!")
+                return 0
+    return 0
+
+def create_sum(origin, base, k, step_k, components):
+    expr = step_k[1] - step_k[0] # base for substitution
+    low = min(extract_args(expr))
+    up = max(extract_args(expr))
+    lower_bound = n-i
+    upper_bound = n
+    for key in components:
+        values = components[key]
+        expanded_sum = 0
+        for v in values:
+            expanded_sum += v
+        expr = expr.subs(expanded_sum, gather_sum(key, values))
+    # TODO: the following should only be done for components, not for constants
+    expr = expr.subs([(low, lower_bound), (up, upper_bound)])
+    expr = expr.subs([(x, n-(up-x)) for x in range(low+1, up)])
+    print(f"result: {expr}, {low}, {up}")
+    return expr
+
+def simplify_to_sum(expr, x, n, start: int, end: int = None):
+    result = expr
     k: int = start
+    origin = (x, solve(expr, x)[0]) # original
+    base = (x.subs(n, k), solve(expr.subs(n, k), x.subs(n, k))[0]) # base case with k = start
+
+    generated = [] # list of generated expressions where k > start
+    stop = False
+    tries = 0 # tries to find summification
+    limit = 3 # limit on tries
     while not stop:
-        # Fill in k and solve e_k for x_k
-        e_k = expr.subs(n, k)
-        x_k = x.subs(n, k)
-        dummy = solve(e_k, x_k)[0]
-        E.append((x_k, dummy))
-        
-        # Check if substitution chain results in summation
-        if k > start + 2:
-            e_prev = E[0] # set the first expr in E as previous
-            changes = [e_prev[1]] # record changes after each subs, starting with the rhs of the first e
-            for e in E[1:]:
-                dummy = e[1].subs(e_prev[0], e_prev[1])
-                changes.append(dummy - e_prev[1])
-                e_prev = (e[0], dummy)
-            # Gather changes and try to 'summify' them
-            print(e_prev)
-            print(changes)
-            sums = {}
-            for step in range(len(changes)):
-                dummy = changes[step].subs(step, i)
-                # TODO: make recursively go through args
-                if len(dummy.args) > 1:
-                    for d in dummy.args:
-                        if d not in sums:
-                            sums[d] = [d.subs(i, step)]
-                        else:
-                            sums[d].append(d.subs(i, step))
-                elif d not in sums:
-                    sums[d] = [d.subs(i, step)]
-                else:
-                    sums[d].append(d.subs(i, step))
-            print(sums)
-            for key in sums:
-                sum_list = sums[key]
-                if len(sum_list) > 1:
-                    i_start = sum_list[0].args[0] # extract i from p(i)
-                    i_end = sum_list[-1].args[0] # extract i from p(i)
-                    step_size = sum_list[1].args[0] - sum_list[0].args[0] # difference between steps
-                    equal_step_size = True
-                    if len(sum_list) > 2:
-                        prev = sum_list[1].args[0]
-                        for s in sum_list[2:]:
-                            if s.args[0] - prev != step_size:
-                                equal_step_size = False
-                                break
-                            prev = s.args[0]
-                    if step_size == 1:
-                        ans = ans + Sum(key.subs(i, j), (j, i_start, i_end))
-                    else:
-                        print(f"WARNING: expression has step size {step_size}. Summation may be possible, but is not automation is not implemented yet!")
-                        return expr
-                    print(f"start, end: {i_start}, {i_end}")
-                else:
-                    # add singular to result expression
-                    ans = ans + sum_list[0]
-            ans = ans - e_prev[0]
-            print(f"ANS: {ans}")
-            # Now substitute the integer start with var i and the current step k with n
-            ans = ans.subs([(k, n), (k-1, n-1), (start-1, n-i)])
-            print(f"ANS: {ans}")
-            stop = True
         k += 1
-    
-    print(E)
+        next = (x.subs(n, k), solve(expr.subs(n, k), x.subs(n, k))[0])
+        generated.append(next)
+        if k > start + 2:
+            tries += 1
+            chain = get_subs_chain(base, generated) # forward substitution chain
+            changes = get_chain_changes(chain) # see what is changed/generated each iteration
+            components = get_components(changes) # collect components from changes
+            # Relate components back to base case in order to subs back the starting values and n/k
+            result = create_sum(origin, base, k, chain[-1], components)
+            stop = True
+    return result
 
-    return ""
-
-# TODO: refine summation deduction
 def simple_deduction():
     """ Creates a deduction using functions and substitutions. """
     # (1) s(n) = s(n-1) + 1 substitution
@@ -384,10 +413,6 @@ def simple_deduction():
     a = solve(f, x)
     print("(3):")
     print_equation(f, x, a)
-
-    a0 = solve(f, A(n))
-    print(expr_to_sum(a0[0]-A(n), A(n), n, 1))
-    return
 
     # (4) substitute n with 1 for base case
     f1 = f.subs(n, 1)
@@ -432,7 +457,6 @@ def simple_deduction():
     print_equation(f6, x6, a6)
 
     # (10) revert -3 back to -i simplify into summation
-    j = symbols("j", positive=True, integer=True)
     psum = Sum(p(j),(j, i, n-1))
     f7 = f6.subs([(A(n-3), A(n-i)), (a6[0].subs(A(n-3), 0), psum)])
     x7 = A(n)
@@ -446,6 +470,32 @@ def simple_deduction():
     msg += "As the denominator only contains one generator we can simply use rsolve, which results in 'n' === Sum(1, (i, 0, n-1))."
     print(msg)
 
+def semi_automatic_deduction():
+    """ Creates a deduction using functions and substitutions. """
+    # (1) s(n) = s(n-1) + 1 substitution
+    f = f_equations[4]
+    x = s(n)
+    a = solve(f, x)
+    print_equation(f, x, a)
+
+    # (2) applying (1) to equation 3 and solve for p(n-1)
+    f = f_equations[3].subs(a[0], x)
+    x = p(n-1)
+    a = solve(f, x)
+    print_equation(f, x, a)
+
+    # (3) Substitute c()*s() with A() to simplify
+    A = Function("A") # substitute function for composite c()*s()
+    f = a[0] - x
+    f = f.subs(c(n)*s(n), A(n)).subs(c(n-1)*s(n-1), A(n-1))
+    x = p(n-1) # solve for c(n)*s(n)
+    a = solve(f, x)
+    print_equation(f, x, a)
+
+    a0 = solve(f, A(n))
+    ans = simplify_to_sum(a0[0]-A(n), A(n), n, 1)
+    print_equation(ans, A(n), solve(ans, A(n)))
+
 # TODO: implement
 def indexed_deduction():
     pass
@@ -453,7 +503,8 @@ def indexed_deduction():
 def main():
     init_printing(use_unicode=True)
     # solving_trial()
-    simple_deduction()
+    # simple_deduction()
+    semi_automatic_deduction()
     indexed_deduction()
 
 if __name__ == "__main__":
