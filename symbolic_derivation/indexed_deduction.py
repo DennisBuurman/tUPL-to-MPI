@@ -20,7 +20,38 @@ i_equations: Dict = {
     2 : - S[n+1] + S[n] - 1,
     3 : - C[n+1] + (C[n] * S[n] + P[n]) / (S[n] + 1),
     4 : - S[n+1] + S[n] + 1
+} # Indexed equations
+
+c = Function('c') # PM_C
+s = Function('s') # PM_S
+p = Function('p') # PC
+
+# Function value symbols
+N, K, I = symbols('N K I', integer=True, positive=True)
+
+# Function equations
+f_equations = {
+    1 : - c(N) + (c(N-1) * s(N-1) - p(N-1)) / (s(N-1) - 1),
+    2 : - s(N) + s(N-1) - 1,
+    3 : - c(N) + (c(N-1) * s(N-1) + p(N-1)) / (s(N-1) + 1),
+    4 : - s(N) + s(N-1) + 1
 } # function equations
+
+# Map Indexed and Function notations
+index_map = {
+    C: c,
+    S: s,
+    P: p,
+    n: N,
+    k: K,
+    i: I,
+    c: C,
+    s: S,
+    p: P,
+    N: n,
+    K: k,
+    I: i
+}
 
 def get_step_size(indices: List[int]) -> int:
     """ Returns step size integer if step size is equal between any two indices; else None. """
@@ -143,6 +174,7 @@ def chain_to_origin(chain: List[Tuple], origin: Tuple, start: int) -> List[Tuple
 
 def simplify_to_sum(expr, x, n, start: int = 0, end: int = None, step: int = 1):
     # Start with original expression
+    # FIXME: only works for array expanding recurrences. Constant expanding recurrences, increments/decrements for example, do not work!
     origin: Tuple = (x, solve(expr, x)[0])
     generated: List[Tuple] = []
     chain: List[Tuple] = []
@@ -152,6 +184,8 @@ def simplify_to_sum(expr, x, n, start: int = 0, end: int = None, step: int = 1):
         next: Tuple = (x.subs(n, k), solve(expr.subs(n, k), x.subs(n, k))[0])
         generated.append(next)
     
+    print(f"Generated: {generated}")
+    
     # Create a substitution chain if possible
     next = generated[0]
     chain.append(next)
@@ -159,58 +193,120 @@ def simplify_to_sum(expr, x, n, start: int = 0, end: int = None, step: int = 1):
         next = (gen[0], gen[1].subs(next[0], next[1]))
         chain.append(next)
 
+    print(f"Subs chain: {chain}")
+
     # Traverse and transform the expressions in the chain
     chain = [(c[0], traverse_expression(c[1])) for c in chain]
+
+    print(f"Traversed chain: {chain}")
     
     # Substitute origin indices back into chain
     chain = chain_to_origin(chain, origin, start)
     
-    # TODO: create function or comprehension
-    # Check if base case equals rest of chain for n = i = 0
-    equiv = True
-    base_expr = Eq(chain[0][0], chain[0][1]).subs([(n, 0), (i, 0)])
-    for c in chain[1:]:
-        chain_expr = Eq(c[0], c[1]).subs([(n, 0), (i, 0)])
-        if base_expr.doit() != chain_expr.doit():
-            equiv = False
-            print(f"WARNING: resulting sum-notation is not equivalent to base case!\n{base_expr} != {chain_expr}")
-            break
-    if not equiv:
-        return expr # Change nothing
-    
-    # Now check if further steps in the chain are equal
-    if False in [Eq(chain[idx-1][0], chain[idx-1][1]) == Eq(chain[idx][0], chain[idx][1]) for idx in range(2, len(chain))]:
-        print(f"WARNING: sum-notations within chain are not equivalent!")
-        return expr # Change nothing
-    
     return chain[-1]
 
 def indexed_deduction():
-    # Step 1: solve (4) for S[n+1]
+    print(">>> Step 1: solve (4) for S[n+1] <<<")
     f = i_equations[4]
     x = S[n+1]
     res = solve(f, x)[0]
     pprint(Eq(x, res))
     print("")
 
-    # Step 2: substitute step 1 result in (3)
+    print(">>> Step 2: substitute step 1 result in (3) <<<")
     f = i_equations[3].subs(res, x)
     x = P[n]
     res = solve(f, x)[0]
     pprint(Eq(x, res))
     print("")
 
-    # Step 3: substitute C[]S[] with A[]
+    print(">>> Step 3: substitute C[]S[] with A[] <<<")
+    # Note: composite substitution is not necessary! 
+    # Solving for C[n+1]*S[n+1] is equivalent
     A = IndexedBase('A')
-    f = -x + res.subs([(C[n+1]*S[n+1], A[n+1]), (C[n]*S[n], A[n])])
+    f = (-x + res).subs([(C[n+1]*S[n+1], A[n+1]), (C[n]*S[n], A[n])])
     x = A[n+1]
     res = solve(f, x)[0]
     pprint(Eq(x, res))
     print("")
 
-    # Step 4: perform iterative generation to simplify to sum
-    res = simplify_to_sum(res-x, x, n)
-    pprint(Eq(res[0], res[1]))
+    print(">>> Step 4: perform iterative generation and simplify to sum <<<")
+    sum_x, sum_res = simplify_to_sum(res-x, x, n)
+    pprint(Eq(sum_x, sum_res))
+    print("")
+
+    print(">>> Step 5: move sum to one side and fill in n = i = 0 <<<")
+    f = (-sum_x + sum_res).subs([(n, 0), (i, 0)]).doit()
+    x = A[1]-A[0]
+    res = solve(f, x)[0]
+    pprint(Eq(x, res))
+    print("")
+
+    print(">>> Step 6: Assume A[0] = 0 for base case <<<")
+    f = (-x + res).subs(A[0], 0)
+    x = A[1]
+    res = solve(f, x)[0]
+    pprint(Eq(x, res))
+    print("")
+
+    print(">>> Step 7: substitute base case n = i = 0, A[1] = P[0] into step 4 result")
+    f = (-sum_x + sum_res).subs([(-i+n, 0), (A[0], 0)])
+    x = A[n+1]
+    res = solve(f, x)[0]
+    pprint(Eq(x, res))
+    print("")
+
+    print(">>> Step 8: substitute n with n-1 <<<")
+    f = (-x + res).subs(n, n-1)
+    x = A[n]
+    res = solve(f, x)[0]
+    pprint(Eq(x, res))
+    print("")
+
+    print(">>> Step 9: substitute A[] with C[]S[] <<<")
+    f = (-x + res).subs(A[n], C[n]*S[n])
+    x = C[n]*S[n]
+    res = solve(f, x)[0]
+    pprint(Eq(x, res))
+    print("")
+
+    print(">>> Step 10: substitute equation from step 9 into original (3) <<<")
+    f = i_equations[3].subs(x, res)
+    x = C[n+1]
+    res = solve(f, x)[0]
+    pprint(Eq(x, res))
+    print("")
+
+    print(">>> Step 11: gather terms in numerator <<<")
+    # TODO: write (incremental) gather and scatter sum functions
+    f = (-x + res).subs(res.args[1], Sum(P[k], (k, 0, n)))
+    x = C[n+1]
+    res = solve(f, x)[0]
+    pprint(Eq(x, res))
+    print("")
+
+    print(">>> Step 12: transform denominator using recurrent solver on original (4) <<<")
+    # FIXME: Indexed recurrence results in 'sympy.tensor.indexed.IndexException: Indexed needs at least one index.'
+    # Use functional notation to use recurrent solver; note that generator must be a symbol ('n', not 'n+1')
+    # TODO: map equations using function
+    f_d = f_equations[4]
+    x_d = s(N)
+    res_d = rsolve(f_d, x_d, {s(0):0})
+    if res_d in index_map:
+        res_d = index_map[res_d] # TODO: map
+    x_d = S[n] # TODO: map
+    if res_d == x_d.args[1]:
+        # TODO: account for 1: constants and 2: operations involving n
+        # Goal is to deduce a sum notation if possible
+        res_d = Sum(1, (k, 0, n-1))
+    pprint(Eq(x_d, res_d))
+    print("")
+
+    print(">>> Step 13: substitute step 12 into step 11 result <<<")
+    f = (-x + res).subs(x_d, res_d)
+    x = C[n+1]
+    res = solve(f, x)[0]
+    pprint(Eq(x, res))
     print("")
 
 if __name__ == "__main__":
