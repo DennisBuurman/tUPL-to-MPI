@@ -57,7 +57,7 @@ void kmeansRecalc(struct Options &options, const std::string &variant,
   double start_time, end_time;
 
   // Time the individual parts of computation
-  double it_start_time, it_reassign_time, it_update_time, it_end_time;
+  double init_time, it_start_time, it_reassign_time, it_update_time, it_end_time;
   double cum_reassign_time = 0.0, cum_update_time = 0.0, cum_it_end_time = 0.0;
 
   //define local variables for the often used options
@@ -75,8 +75,10 @@ void kmeansRecalc(struct Options &options, const std::string &variant,
   uint64_t * meanSize = new uint64_t[numMeans];
   uint64_t * oldMeanSize = new uint64_t[numMeans];
   uint64_t * meanSizeBuff = new uint64_t[numMeans];
+  uint64_t * meanSizeLocal = new uint64_t[numMeans]; // M level recalc
   double ** meanValues = allocate2dDoubleArray(numMeans,dataDim);
   double ** oldMeanValues = allocate2dDoubleArray(numMeans,dataDim);
+  double ** meanValuesLocal = allocate2dDoubleArray(numMeans,dataDim); // M level recalc
   double * meanValuesBuff = new double[numMeans * dataDim];
   double threshold = numDataPoints * options.thresholdMultiplier;
 
@@ -94,10 +96,16 @@ void kmeansRecalc(struct Options &options, const std::string &variant,
                  const_cast<const double **>(meanValues), oldMeanValues,
                  const_cast<const uint64_t *>(meanSize), oldMeanSize);
 
+  initLocal(options, data, belongsToMean, meanSizeLocal, meanValuesLocal); // M level recalc
+
+  init_time = MPI_Wtime();
+
   //execute the algorithm (this is where the magic happens)
   //NOTE: this is only one of several possible ways to code this
   uint64_t reassigned = threshold + 1;
   uint64_t localReassigned, specialReassigned = 0;
+  const uint64_t REASSIGN_LIMIT = 1000000000; // M level recalc
+  uint64_t reassignedSinceRecalculation = 0; // M level recalc
   int cycles = 0;
   while (reassigned > threshold) {
     it_start_time = MPI_Wtime();  // at start of iteration
@@ -105,14 +113,32 @@ void kmeansRecalc(struct Options &options, const std::string &variant,
     cycles++;
     localReassigned = 0;
 
-    reassignLocalDataPoints(options, localReassigned, data,
-                            meanSize, meanValues, belongsToMean);
+    // reassignLocalDataPoints(options, localReassigned, data,
+    //                         meanSize, meanValues, belongsToMean);
+    reassignLocalDataPointsMlevel(options, localReassigned, data, meanSize, meanSizeLocal,
+                                  meanValues, meanValuesLocal, belongsToMean); // M level recalc
     
     it_reassign_time = MPI_Wtime();  // after reassignment
 
     // now recalculate means (by communication) and check whether we are done
-    recalcMeans(options, data, meanSize, meanSizeBuff,
-                meanValues, meanValuesBuff, belongsToMean);
+    // recalcMeans(options, data, meanSize, meanSizeBuff,
+    //             meanValues, meanValuesBuff, belongsToMean); 
+    MPI_Allreduce(&localReassigned, &reassigned, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD); // M level recalc
+    reassignedSinceRecalculation += reassigned;
+    if (reassignedSinceRecalculation > REASSIGN_LIMIT) {
+      if (mpi_rank == 0) {
+        std::cout << "using i-level due to rounding errors" << std::endl;
+      }
+      //we've reassigned enough points to risk significant rounding errors, so do a full recalculation
+      reassignedSinceRecalculation = 0;
+      
+      recalcMeans(options, data, meanSize, meanSizeBuff,
+                  meanValues, meanValuesBuff, belongsToMean);
+    }
+    else {
+      recalcMeansMlevel(options, data, meanSize, meanSizeBuff, meanSizeLocal,
+                      meanValues, meanValuesBuff, meanValuesLocal, belongsToMean); // M level recalc
+    }
     
     it_update_time = MPI_Wtime();  // after updating the means
 
@@ -130,8 +156,8 @@ void kmeansRecalc(struct Options &options, const std::string &variant,
                    const_cast<const double **>(meanValues), oldMeanValues,
                    const_cast<const uint64_t *>(meanSize), oldMeanSize);
 
-    // communicate whether all processes have converged
-    MPI_Allreduce(&localReassigned, &reassigned, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+    // // communicate whether all processes have converged
+    // MPI_Allreduce(&localReassigned, &reassigned, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
 
     it_end_time = MPI_Wtime();  // at end of iteration
 
@@ -149,6 +175,8 @@ void kmeansRecalc(struct Options &options, const std::string &variant,
   
   //log the time spent in each component
   if (mpi_rank == 0) {
+    std::cout << "TIME EXP " << options.currentRun << ": " << printPreamble()
+              << " init time " << init_time - start_time << " seconds " << std::endl; 
     std::cout << "TIME EXP " << options.currentRun << ": " << printPreamble()
               << " reassign time "
               << cum_reassign_time
@@ -346,6 +374,82 @@ void kmeansIncremental(struct Options &options, const std::string &variant,
 }
 
 /* Additions to file */
+
+// M level recalc
+// This version can be more efficient if the local mean size is used from the start instead of added later.
+template <typename D, typename B>
+static inline void initLocal(struct Options &options,
+                             D *data,
+                             B *belongsToMean,
+                             uint64_t * meanSizeLocal,
+                             double **meanValuesLocal)
+{
+  const int numMeans(options.numMeans);
+  const uint64_t numLocalDataPoints(options.numLocalDataPoints);
+  const int dataDim(options.dataDim);
+
+  std::fill(meanSizeLocal, meanSizeLocal + numMeans, 0);
+  std::fill(&meanValuesLocal[0][0], &meanValuesLocal[0][0] + sizeof(meanValuesLocal), 0.0);
+
+  int mean;
+  for (uint64_t x = 0; x < numLocalDataPoints; x++) {
+    mean = getMean(belongsToMean, x);
+    meanSizeLocal[mean]++;
+    for (int d = 0; d < dataDim; d++) {
+      meanValuesLocal[mean][d] += getDataPoint(data, x, d);
+    }
+  }
+
+  for (int mean = 0; mean < numMeans; mean++) {
+    for (int d = 0; d < dataDim; d++) {
+      meanValuesLocal[mean][d] = meanValuesLocal[mean][d] / meanSizeLocal[mean];
+    }
+  }
+}
+
+// M level recalc
+// Reassign but also keep track of mean size for local data points
+template <typename D, typename B>
+static inline void reassignLocalDataPointsMlevel(struct Options &options,
+                                           uint64_t &localReassigned,
+                                           D *data,
+                                           uint64_t *meanSize,
+                                           uint64_t * meanSizeLocal, // M level recalc
+                                           double **meanValues,
+                                           double **meanValuesLocal, // M level recalc
+                                           B *belongsToMean)
+{
+  const int numMeans(options.numMeans);
+  const uint64_t numLocalDataPoints(options.numLocalDataPoints);
+  const int dataDim(options.dataDim);
+
+  double oldDistance, newDistance;
+  for (uint64_t x = 0; x < numLocalDataPoints; x++) {
+    oldDistance = calculateDistance(meanValues[getMean(belongsToMean, x)], getData(data, x), dataDim);
+    for (int m = 0; m < numMeans; m++) {
+      if (m != getMean(belongsToMean, x)) {
+        newDistance = calculateDistance(meanValues[m], getData(data, x), dataDim);
+        if (newDistance < oldDistance) {
+          localReassigned++;
+          const int oldMean(getMean(belongsToMean, x));
+          for (int d = 0; d < dataDim; d++) {
+            meanValues[oldMean][d] = (meanValues[oldMean][d] * meanSize[oldMean] - getDataPoint(data, x, d)) / (meanSize[oldMean] - 1);
+            meanValues[m][d] = (meanValues[m][d] * meanSize[m] + getDataPoint(data, x, d)) / (meanSize[m] + 1);
+
+            meanValuesLocal[oldMean][d] = (meanValuesLocal[oldMean][d] * meanSizeLocal[oldMean] - getDataPoint(data, x, d)) / (meanSizeLocal[oldMean] - 1); // M level recalc
+            meanValuesLocal[m][d] = (meanValuesLocal[m][d] * meanSizeLocal[m] + getDataPoint(data, x, d)) / (meanSizeLocal[m] + 1); // M level recalc
+          }
+          meanSize[oldMean] -= 1;
+          meanSize[m] += 1;
+          setMean(belongsToMean, x, m);
+          meanSizeLocal[oldMean] -= 1; // M level recalc
+          meanSizeLocal[m] += 1; // M level recalc
+          oldDistance = newDistance; 
+        }
+      }
+    }
+  }
+}
 
 // reassign each of the local data points, updating the mean values as we go
 // meanSize is kept strongly consistent. Each update is directly synchronized.

@@ -2,4 +2,5 @@ MPI_Kmeans
 MPI_Kmeans_incremental
 MPI_Kmeans_incremental_localized
 MPI_Kmeans_localized
+MPI_Kmeans_values_only
 *.o

@@ -431,6 +431,32 @@ static inline void recalcMeans(const struct Options &options,
 }
 
 template<typename D, typename B>
+static inline void recalcMeansMlevel(const struct Options &options,
+                               D *data,
+                               uint64_t *meanSize,
+                               uint64_t *meanSizeBuff,
+                               uint64_t * meanSizeLocal, // M level recalc
+                               double **meanValues,
+                               double *meanValuesBuff,
+                               double **meanValuesLocal, // M level recalc
+                               B *belongsToMean)
+{
+  std::fill(meanSizeBuff, meanSizeBuff + options.numMeans, 0);
+  std::fill(meanValuesBuff, meanValuesBuff + options.numMeans * options.dataDim, 0.0);
+
+  // M level recalc: here we need the local mean, otherwise we would multiply with total size for each process.
+  for (int mean = 0; mean < options.numMeans; mean++) {
+    meanSizeBuff[mean] = meanSizeLocal[mean];
+    for (int d = 0; d < options.dataDim; d++) {
+      meanValuesBuff[mean * options.dataDim + d] = meanValuesLocal[mean][d] * meanSizeLocal[mean];
+    }
+  }
+
+  MPI_Allreduce(meanValuesBuff,meanValues[0], options.numMeans * options.dataDim, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+  MPI_Allreduce(meanSizeBuff, meanSize, options.numMeans, MPI_UINT64_T, MPI_SUM, MPI_COMM_WORLD);
+}
+
+template<typename D, typename B>
 static inline void recalcMeansValuesOnly(const struct Options &options,
                                D *data,
                                double **meanValues,
