@@ -27,6 +27,11 @@ static inline void reassignLocalDataPoints(struct Options &options,
   const uint64_t numLocalDataPoints(options.numLocalDataPoints);
   const int dataDim(options.dataDim);
 
+  // uint32_t count = 0;
+  // if (mpi_rank == 0) {
+  //   std::cout << "LOCAL POINTS: " <<  numLocalDataPoints;
+  // }
+
   double oldDistance, newDistance;
   for (uint64_t x = 0; x < numLocalDataPoints; x++) {
     oldDistance = calculateDistance(meanValues[getMean(belongsToMean, x)], getData(data, x), dataDim);
@@ -35,19 +40,26 @@ static inline void reassignLocalDataPoints(struct Options &options,
         newDistance = calculateDistance(meanValues[m], getData(data, x), dataDim);
         if (newDistance < oldDistance) {
           localReassigned++;
-          const int oldMean(getMean(belongsToMean, x));
-          for (int d = 0; d < dataDim; d++) {
-            meanValues[oldMean][d] = (meanValues[oldMean][d] * meanSize[oldMean] - getDataPoint(data, x, d)) / (meanSize[oldMean] - 1);
-            meanValues[m][d] = (meanValues[m][d] * meanSize[m] + getDataPoint(data, x, d)) / (meanSize[m] + 1);
-          }
-          meanSize[oldMean] -= 1;
-          meanSize[m] += 1;
+          // count++;
+          // // *** TURN OFF FOR IM variant
+          // const int oldMean(getMean(belongsToMean, x));
+          // for (int d = 0; d < dataDim; d++) {
+          //   meanValues[oldMean][d] = (meanValues[oldMean][d] * meanSize[oldMean] - getDataPoint(data, x, d)) / (meanSize[oldMean] - 1);
+          //   meanValues[m][d] = (meanValues[m][d] * meanSize[m] + getDataPoint(data, x, d)) / (meanSize[m] + 1);
+          // }
+          // meanSize[oldMean] -= 1;
+          // meanSize[m] += 1;
+          // // ***
           setMean(belongsToMean, x, m);
           oldDistance = newDistance; 
         }
       }
     }
   }
+
+  // if (mpi_rank == 0) {
+  //   std::cout << "; REASSIGNED: " << count << std::endl;
+  // }
 }
 
 template <typename D, typename B>
@@ -208,6 +220,9 @@ void kmeansRecalc(struct Options &options, const std::string &variant,
   delete[] oldMeanValues[0];
   delete[] oldMeanValues;
   delete[] meanValuesBuff;
+  delete[] meanSizeLocal; // M level recalc
+  delete[] meanValuesLocal[0]; // M level recalc
+  delete[] meanValuesLocal; // M level recalc
 }
 
 
@@ -424,6 +439,12 @@ static inline void reassignLocalDataPointsMlevel(struct Options &options,
   const int dataDim(options.dataDim);
 
   double oldDistance, newDistance;
+
+  uint32_t count = 0;
+  if (mpi_rank == 0) {
+    std::cout << "LOCAL POINTS: " <<  numLocalDataPoints;
+  }
+
   for (uint64_t x = 0; x < numLocalDataPoints; x++) {
     oldDistance = calculateDistance(meanValues[getMean(belongsToMean, x)], getData(data, x), dataDim);
     for (int m = 0; m < numMeans; m++) {
@@ -431,10 +452,11 @@ static inline void reassignLocalDataPointsMlevel(struct Options &options,
         newDistance = calculateDistance(meanValues[m], getData(data, x), dataDim);
         if (newDistance < oldDistance) {
           localReassigned++;
+          count++;
           const int oldMean(getMean(belongsToMean, x));
           for (int d = 0; d < dataDim; d++) {
-            meanValues[oldMean][d] = (meanValues[oldMean][d] * meanSize[oldMean] - getDataPoint(data, x, d)) / (meanSize[oldMean] - 1);
-            meanValues[m][d] = (meanValues[m][d] * meanSize[m] + getDataPoint(data, x, d)) / (meanSize[m] + 1);
+            // meanValues[oldMean][d] = (meanValues[oldMean][d] * meanSize[oldMean] - getDataPoint(data, x, d)) / (meanSize[oldMean] - 1);
+            // meanValues[m][d] = (meanValues[m][d] * meanSize[m] + getDataPoint(data, x, d)) / (meanSize[m] + 1);
 
             meanValuesLocal[oldMean][d] = (meanValuesLocal[oldMean][d] * meanSizeLocal[oldMean] - getDataPoint(data, x, d)) / (meanSizeLocal[oldMean] - 1); // M level recalc
             meanValuesLocal[m][d] = (meanValuesLocal[m][d] * meanSizeLocal[m] + getDataPoint(data, x, d)) / (meanSizeLocal[m] + 1); // M level recalc
@@ -448,6 +470,10 @@ static inline void reassignLocalDataPointsMlevel(struct Options &options,
         }
       }
     }
+  }
+
+  if (mpi_rank == 0) {
+    std::cout << "; REASSIGNED: " << count << std::endl;
   }
 }
 

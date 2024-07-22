@@ -25,14 +25,15 @@ class Tree:
     def __init__(self, root_nodes: List[Node], conditions: List[any]) -> None:
         self.conditions: List[any] = conditions # candidate conditions
         self.nodes: List[Node] = root_nodes # list of nodes in tree
+        self.lineage: Dict[Node, List[Node]] # dict to track lineage of Nodes
         self.tree: Dict[Node, Dict[Tuple[any, any], Node]] = dict() # {src: {(component, substitution): dest} }
     
     def add_node(self, src: Node, equation: Tuple[any, any], dest: Node) -> None:
-        """ TODO: add node '(src, equation) -> dest' to tree. """
+        """ TODO: add node '(src, (sub_src, sub_dest)) -> dest' to tree. """
         pass
 
     def search_expansion(self) -> Tuple[any, Tuple[any, any], any]:
-        """ TODO: traverse self.nodes and find sets of (src, equation, dest). """
+        """ TODO: traverse self.nodes and find sets of (src, (sub_src, sub_dest), dest). """
         pass
 
     def get_candidates(self) -> List[Node]:
