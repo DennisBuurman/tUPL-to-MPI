@@ -440,10 +440,10 @@ static inline void reassignLocalDataPointsMlevel(struct Options &options,
 
   double oldDistance, newDistance;
 
-  uint32_t count = 0;
-  if (mpi_rank == 0) {
-    std::cout << "LOCAL POINTS: " <<  numLocalDataPoints;
-  }
+  // uint32_t count = 0;
+  // if (mpi_rank == 0) {
+  //   std::cout << "LOCAL POINTS: " <<  numLocalDataPoints;
+  // }
 
   for (uint64_t x = 0; x < numLocalDataPoints; x++) {
     oldDistance = calculateDistance(meanValues[getMean(belongsToMean, x)], getData(data, x), dataDim);
@@ -452,7 +452,7 @@ static inline void reassignLocalDataPointsMlevel(struct Options &options,
         newDistance = calculateDistance(meanValues[m], getData(data, x), dataDim);
         if (newDistance < oldDistance) {
           localReassigned++;
-          count++;
+          // count++;
           const int oldMean(getMean(belongsToMean, x));
           for (int d = 0; d < dataDim; d++) {
             // meanValues[oldMean][d] = (meanValues[oldMean][d] * meanSize[oldMean] - getDataPoint(data, x, d)) / (meanSize[oldMean] - 1);
@@ -472,9 +472,9 @@ static inline void reassignLocalDataPointsMlevel(struct Options &options,
     }
   }
 
-  if (mpi_rank == 0) {
-    std::cout << "; REASSIGNED: " << count << std::endl;
-  }
+  // if (mpi_rank == 0) {
+  //   std::cout << "; REASSIGNED: " << count << std::endl;
+  // }
 }
 
 // reassign each of the local data points, updating the mean values as we go
