@@ -41,15 +41,15 @@ static inline void reassignLocalDataPoints(struct Options &options,
         if (newDistance < oldDistance) {
           localReassigned++;
           // count++;
-          // // *** TURN OFF FOR IM variant
-          // const int oldMean(getMean(belongsToMean, x));
-          // for (int d = 0; d < dataDim; d++) {
-          //   meanValues[oldMean][d] = (meanValues[oldMean][d] * meanSize[oldMean] - getDataPoint(data, x, d)) / (meanSize[oldMean] - 1);
-          //   meanValues[m][d] = (meanValues[m][d] * meanSize[m] + getDataPoint(data, x, d)) / (meanSize[m] + 1);
-          // }
-          // meanSize[oldMean] -= 1;
-          // meanSize[m] += 1;
-          // // ***
+          // *** TURN OFF FOR IM variant
+          const int oldMean(getMean(belongsToMean, x));
+          for (int d = 0; d < dataDim; d++) {
+            meanValues[oldMean][d] = (meanValues[oldMean][d] * meanSize[oldMean] - getDataPoint(data, x, d)) / (meanSize[oldMean] - 1);
+            meanValues[m][d] = (meanValues[m][d] * meanSize[m] + getDataPoint(data, x, d)) / (meanSize[m] + 1);
+          }
+          meanSize[oldMean] -= 1;
+          meanSize[m] += 1;
+          // ***
           setMean(belongsToMean, x, m);
           oldDistance = newDistance; 
         }
