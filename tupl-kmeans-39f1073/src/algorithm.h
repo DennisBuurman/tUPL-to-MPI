@@ -393,6 +393,28 @@ static inline void initLocal(struct Options &options,
   }
 }
 
+// Ignore dependencies local partition of values contains sum of all local point coords.
+template <typename D, typename B>
+static inline void initLocalValues(struct Options &options,
+                             D *data,
+                             B *belongsToMean,
+                             double **meanValuesLocal)
+{
+  const int numMeans(options.numMeans);
+  const uint64_t numLocalDataPoints(options.numLocalDataPoints);
+  const int dataDim(options.dataDim);
+
+  std::fill(&meanValuesLocal[0][0], &meanValuesLocal[0][0] + sizeof(meanValuesLocal), 0.0);
+
+  int mean;
+  for (uint64_t x = 0; x < numLocalDataPoints; x++) {
+    mean = getMean(belongsToMean, x);
+    for (int d = 0; d < dataDim; d++) {
+      meanValuesLocal[mean][d] += getDataPoint(data, x, d);
+    }
+  }
+}
+
 // M level recalc
 // Reassign but also keep track of mean size for local data points
 template <typename D, typename B>
@@ -497,6 +519,7 @@ static inline void reassignSyncSize(struct Options &options,
                                     D *data,
                                     uint64_t *meanSize,
                                     double **meanValues,
+                                    double **meanValuesLocal, // local partition
                                     B *belongsToMean)
 {
   const int numMeans(options.numMeans);
@@ -515,28 +538,19 @@ static inline void reassignSyncSize(struct Options &options,
           localReassigned++;
           const int oldMean(getMean(belongsToMean, x));
           for (int d = 0; d < dataDim; d++) {
-            meanValues[oldMean][d] = (meanValues[oldMean][d] * meanSize[oldMean] - getDataPoint(data, x, d)) / (meanSize[oldMean] - 1);
-            meanValues[m][d] = (meanValues[m][d] * meanSize[m] + getDataPoint(data, x, d)) / (meanSize[m] + 1);
+            meanValuesLocal[oldMean][d] -= getDataPoint(data, x, d);
+            meanValuesLocal[m][d] += getDataPoint(data, x, d);
           }
           meanSize[oldMean] -= 1;
           meanSize[m] += 1;
 
           /* Communicate change and update meanSize */
-          // std::fill(meanSizeChange, meanSizeChange + options.numMeans, 0);
-          // meanSizeChange[oldMean] -= 1;
-          // meanSizeChange[m] += 1;
-          // MPI_Allreduce(MPI_IN_PLACE, meanSizeChange, options.numMeans, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
-          // for (int i = 0; i < options.numMeans; i++) {
-          //   meanSize[i] += meanSizeChange[i];
-          // }
-
-          // V2: Recalculate meanSize through communication
+          std::fill(meanSizeChange, meanSizeChange + options.numMeans, 0);
+          meanSizeChange[oldMean] -= 1;
+          meanSizeChange[m] += 1;
+          MPI_Allreduce(MPI_IN_PLACE, meanSizeChange, options.numMeans, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
           for (int i = 0; i < options.numMeans; i++) {
-            meanSizeChange[i] = meanSize[i];
-          }
-          MPI_Allreduce(MPI_IN_PLACE, meanSizeChange, options.numMeans, MPI_UINT64_T, MPI_SUM, MPI_COMM_WORLD);
-          for (int i = 0; i < options.numMeans; i++) {
-            meanSize[i] = meanSizeChange[i] / mpi_size;
+            meanSize[i] += meanSizeChange[i];
           }
 
           setMean(belongsToMean, x, m);
@@ -578,6 +592,7 @@ void kmeansRecalcNoDependencies(struct Options &options, const std::string &vari
   uint64_t * meanSizeBuff = new uint64_t[numMeans];
   double ** meanValues = allocate2dDoubleArray(numMeans,dataDim);
   double ** oldMeanValues = allocate2dDoubleArray(numMeans,dataDim);
+  double ** meanValuesLocal = allocate2dDoubleArray(numMeans,dataDim); // local partition
   double * meanValuesBuff = new double[numMeans * dataDim];
   double threshold = numDataPoints * options.thresholdMultiplier;
 
@@ -590,10 +605,11 @@ void kmeansRecalcNoDependencies(struct Options &options, const std::string &vari
     divideMeans(options, meanValues, meanSize);
   }
 
-
   recordOldMeans(options,
                  const_cast<const double **>(meanValues), oldMeanValues,
                  const_cast<const uint64_t *>(meanSize), oldMeanSize);
+
+  initLocalValues(options, data, belongsToMean, meanValuesLocal); // NEW: init local partition
 
   //execute the algorithm (this is where the magic happens)
   //NOTE: this is only one of several possible ways to code this
@@ -607,14 +623,14 @@ void kmeansRecalcNoDependencies(struct Options &options, const std::string &vari
     localReassigned = 0;
 
     // NEW: COMMUNICATE SIZE AFTER EACH REASSIGNMENT
-    reassignSyncSize(options, localReassigned, data,
-                            meanSize, meanValues, belongsToMean);
+    reassignSyncSize(options, localReassigned, data, meanSize,
+                     meanValues, meanValuesLocal, belongsToMean);
     
     it_reassign_time = MPI_Wtime();  // after reassignment
 
     // NEW: ONLY COMMUNICATE meanValuesBuff
     // now recalculate means (by communication) and check whether we are done
-    recalcMeansValuesOnly(options, data, meanValues, meanValuesBuff, belongsToMean);
+    recalcMeansValuesOnly(options, data, meanValues, meanValuesBuff, meanValuesLocal, belongsToMean);
     
     it_update_time = MPI_Wtime();  // after updating the means
 
@@ -624,8 +640,7 @@ void kmeansRecalcNoDependencies(struct Options &options, const std::string &vari
     //                       data, meanSize, meanValues, belongsToMean); 
     // broadcastMeans(options, meanValues, meanSize);
 
-    // NEW: DIVIDE BY SIZE AND RANK COUNT
-    divideMeansValuesOnly(options, meanValues, meanSize);
+    divideMeans(options, meanValues, meanSize);
     
     if (!meanHasMoved(options, meanValues, oldMeanValues))
       break;
@@ -684,6 +699,8 @@ void kmeansRecalcNoDependencies(struct Options &options, const std::string &vari
   delete[] oldMeanValues[0];
   delete[] oldMeanValues;
   delete[] meanValuesBuff;
+  delete[] meanValuesLocal[0]; // local partition
+  delete[] meanValuesLocal; // local partition
 }
 
 template <typename D, typename B>
