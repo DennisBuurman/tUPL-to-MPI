@@ -32,12 +32,9 @@ ex1_config: Dict[str, any] = {
     "seed": "971",
     "variant": "own own_inc own_loc own_inc_loc",
     "size": "24 25 26 27 28",
-    # "size": "24 25 26 27 28",
-    # "size": "24",
     "clusters": [4],
     "dimension": [4],
     "nodes": [[8]],
-    # "nodes": [[1]],
     "ntasks-per-node": [[8]],
     "repeat": "10"
 }
@@ -66,7 +63,7 @@ ex2_config: Dict[str, any] = {
     }
 }
 
-execs: List[str] = ["own", "own_inc", "own_loc", "own_inc_loc"] #, "own_values_only"]
+execs: List[str] = ["own", "own_inc", "own_loc", "own_inc_loc"] #, "own_values_only", "own_local_values", "own_no_updates"]
 debug = False
 
 def exists(file: str) -> bool:

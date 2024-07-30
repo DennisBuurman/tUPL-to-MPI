@@ -29,7 +29,9 @@ names: Dict[str, str] = {
     "own_inc": "Implementation 2",
     "own_loc": "Implementation 3",
     "own_inc_loc": "Implementation 4",
-    "own_values_only": "Implementation 5"
+    "own_values_only": "Implementation 5",
+    "own_m": "Implementation 6",
+    "own_im": "Implementation 7"
 }
 
 def add_parameters(parser: ArgumentParser) -> None:
@@ -65,7 +67,7 @@ def process(df: DataFrame, variable: str) -> Dict[str, Dict[str, List[float]]]:
             else:
                 time_per_implementation[implementation] = [time]
         else:
-            d[var]: Dict = {
+            d[var] = {
                 implementation: [
                     time
                 ]
@@ -96,7 +98,7 @@ def process_reverse(df: DataFrame, variable: str) -> Dict:
             else:
                 time_per_var[var] = [time]
         else:
-            d[implementation]: Dict[str, List[float]] = {
+            d[implementation] = {
                 var: [
                     time
                 ]
@@ -111,7 +113,7 @@ def average_calc_times(d: Dict[str, Dict[str, List[float]]]) -> Dict[str, Dict[s
         implementations: Dict[str, List[float]] = d[x]
         for i in implementations:
            times: List[float] = implementations[i]
-           implementations[i]: float = np.mean(times)
+           implementations[i] = np.mean(times)
     
     return d
 

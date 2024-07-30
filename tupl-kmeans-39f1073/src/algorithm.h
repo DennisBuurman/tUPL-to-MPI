@@ -526,7 +526,7 @@ static inline void reassignSyncSize(struct Options &options,
   const uint64_t numLocalDataPoints(options.numLocalDataPoints);
   const int dataDim(options.dataDim);
 
-  uint64_t *meanSizeChange = new uint64_t[options.numMeans];
+  int64_t *meanSizeChange = new int64_t[numMeans];
 
   double oldDistance, newDistance;
   for (uint64_t x = 0; x < numLocalDataPoints; x++) {
@@ -545,10 +545,13 @@ static inline void reassignSyncSize(struct Options &options,
           meanSize[m] += 1;
 
           /* Communicate change and update meanSize */
-          std::fill(meanSizeChange, meanSizeChange + options.numMeans, 0);
+          std::fill(meanSizeChange, meanSizeChange + numMeans, 0);
+
           meanSizeChange[oldMean] -= 1;
           meanSizeChange[m] += 1;
-          MPI_Allreduce(MPI_IN_PLACE, meanSizeChange, options.numMeans, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+
+          MPI_Allreduce(MPI_IN_PLACE, meanSizeChange, options.numMeans, MPI_INT64_T, MPI_SUM, MPI_COMM_WORLD);
+
           for (int i = 0; i < options.numMeans; i++) {
             meanSize[i] += meanSizeChange[i];
           }

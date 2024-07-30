@@ -455,6 +455,14 @@ static inline void recalcMeansValuesOnly(const struct Options &options,
 {
   std::fill(meanValuesBuff, meanValuesBuff + options.numMeans * options.dataDim, 0.0);
 
+  if (mpi_rank == 0) {
+    std::cout << "MEAN VALUES [0] BEFORE: [";
+    for (int d = 0; d < options.dataDim; d++) {
+      std::cout << meanValues[0][d] << ", ";
+    }
+    std::cout << "]" << std::endl;
+  }
+
   for (int mean = 0; mean < options.numMeans; mean++) {
     for (int d = 0; d < options.dataDim; d++) {
       meanValuesBuff[mean * options.dataDim + d] = meanValuesLocal[mean][d];
@@ -462,6 +470,14 @@ static inline void recalcMeansValuesOnly(const struct Options &options,
   }
 
   MPI_Allreduce(meanValuesBuff, meanValues[0], options.numMeans * options.dataDim, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+
+  if (mpi_rank == 0) {
+    std::cout << "MEAN VALUES [0] AFTER: [";
+    for (int d = 0; d < options.dataDim; d++) {
+      std::cout << meanValues[0][d] << ", ";
+    }
+    std::cout << "]" << std::endl;
+  }
 }
 
 static inline void updateMeans(const struct Options &options,
