@@ -162,6 +162,9 @@ void kmeansRecalc(struct Options &options, const std::string &variant,
   //log the time spent in each component
   if (mpi_rank == 0) {
     std::cout << "TIME EXP " << options.currentRun << ": " << printPreamble()
+              << " calculationTime " << end_time - start_time << " s | "
+              << (end_time - start_time) / cycles << " s averaged" << std::endl;
+    std::cout << "TIME EXP " << options.currentRun << ": " << printPreamble()
               << " reassignTime " << cum_reassign_time << " s | "
               << cum_reassign_time / cycles << " s averaged" << std::endl;
     std::cout << "TIME EXP " << options.currentRun << ": " << printPreamble()
@@ -316,6 +319,9 @@ void kmeansIncremental(struct Options &options, const std::string &variant,
   
   //log the time spent in each component
   if (mpi_rank == 0) {
+    std::cout << "TIME EXP " << options.currentRun << ": " << printPreamble()
+              << " calculationTime " << end_time - start_time << " s | "
+              << (end_time - start_time) / cycles << " s averaged" << std::endl;
     std::cout << "TIME EXP " << options.currentRun << ": " << printPreamble()
               << " reassignTime " << cum_reassign_time << " s | "
               << cum_reassign_time / cycles << " s averaged" << std::endl;
@@ -658,6 +664,9 @@ void kmeansRecalcNoDependencies(struct Options &options, const std::string &vari
   //log the time spent in each component
   if (mpi_rank == 0) {
     std::cout << "TIME EXP " << options.currentRun << ": " << printPreamble()
+              << " calculationTime " << end_time - start_time << " s | "
+              << (end_time - start_time) / cycles << " s averaged" << std::endl;
+    std::cout << "TIME EXP " << options.currentRun << ": " << printPreamble()
               << " reassignTime " << cum_reassign_time << " s | "
               << cum_reassign_time / cycles << " s averaged" << std::endl;
     std::cout << "TIME EXP " << options.currentRun << ": " << printPreamble()
@@ -805,6 +814,9 @@ void kmeansRecalcMlevel(struct Options &options, const std::string &variant,
   //log the time spent in each component
   if (mpi_rank == 0) {
     std::cout << "TIME EXP " << options.currentRun << ": " << printPreamble()
+              << " calculationTime " << end_time - start_time << " s | "
+              << (end_time - start_time) / cycles << " s averaged" << std::endl;
+    std::cout << "TIME EXP " << options.currentRun << ": " << printPreamble()
               << " reassignTime " << cum_reassign_time << " s | "
               << cum_reassign_time / cycles << " s averaged" << std::endl;
     std::cout << "TIME EXP " << options.currentRun << ": " << printPreamble()
@@ -936,6 +948,9 @@ void kmeansRecalcNoUpdates(struct Options &options, const std::string &variant,
   
   //log the time spent in each component
   if (mpi_rank == 0) {
+    std::cout << "TIME EXP " << options.currentRun << ": " << printPreamble()
+              << " calculationTime " << end_time - start_time << " s | "
+              << (end_time - start_time) / cycles << " s averaged" << std::endl;
     std::cout << "TIME EXP " << options.currentRun << ": " << printPreamble()
               << " reassignTime " << cum_reassign_time << " s | "
               << cum_reassign_time / cycles << " s averaged" << std::endl;
