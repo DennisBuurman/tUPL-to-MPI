@@ -162,6 +162,8 @@ void kmeansRecalc(struct Options &options, const std::string &variant,
   //log the time spent in each component
   if (mpi_rank == 0) {
     std::cout << "TIME EXP " << options.currentRun << ": " << printPreamble()
+              << " initTime " << init_time - start_time << " s" << std::endl;
+    std::cout << "TIME EXP " << options.currentRun << ": " << printPreamble()
               << " calculationTime " << end_time - start_time << " s | "
               << (end_time - start_time) / cycles << " s averaged" << std::endl;
     std::cout << "TIME EXP " << options.currentRun << ": " << printPreamble()
@@ -202,7 +204,7 @@ void kmeansIncremental(struct Options &options, const std::string &variant,
   double start_time, end_time;
 
   // Time the individual parts of computation
-  double it_start_time, it_reassign_time, it_update_time, it_end_time;
+  double init_time, it_start_time, it_reassign_time, it_update_time, it_end_time;
   double cum_reassign_time = 0.0, cum_update_time = 0.0, cum_it_end_time = 0.0;
 
   const int numMeans(options.numMeans);
@@ -242,6 +244,8 @@ void kmeansIncremental(struct Options &options, const std::string &variant,
                  const_cast<const double **>(meanValues), oldMeanValues,
                  const_cast<const uint64_t *>(meanSize), oldMeanSize);
   
+  init_time = MPI_Wtime();
+
   //execute the algorithm (this is where the magic happens)
   //NOTE: this is only one of several possible ways to code this
   
@@ -319,6 +323,8 @@ void kmeansIncremental(struct Options &options, const std::string &variant,
   
   //log the time spent in each component
   if (mpi_rank == 0) {
+    std::cout << "TIME EXP " << options.currentRun << ": " << printPreamble()
+              << " initTime " << init_time - start_time << " s" << std::endl;
     std::cout << "TIME EXP " << options.currentRun << ": " << printPreamble()
               << " calculationTime " << end_time - start_time << " s | "
               << (end_time - start_time) / cycles << " s averaged" << std::endl;
@@ -567,7 +573,7 @@ void kmeansRecalcNoDependencies(struct Options &options, const std::string &vari
   double start_time, end_time;
 
   // Time the individual parts of computation
-  double it_start_time, it_reassign_time, it_update_time, it_end_time;
+  double init_time, it_start_time, it_reassign_time, it_update_time, it_end_time;
   double cum_reassign_time = 0.0, cum_update_time = 0.0, cum_it_end_time = 0.0;
 
   //define local variables for the often used options
@@ -605,6 +611,8 @@ void kmeansRecalcNoDependencies(struct Options &options, const std::string &vari
                  const_cast<const uint64_t *>(meanSize), oldMeanSize);
 
   initLocalValues(options, data, belongsToMean, meanValuesLocal); // NEW: init local partition
+
+  init_time = MPI_Wtime();
 
   //execute the algorithm (this is where the magic happens)
   //NOTE: this is only one of several possible ways to code this
@@ -663,6 +671,8 @@ void kmeansRecalcNoDependencies(struct Options &options, const std::string &vari
   
   //log the time spent in each component
   if (mpi_rank == 0) {
+    std::cout << "TIME EXP " << options.currentRun << ": " << printPreamble()
+              << " initTime " << init_time - start_time << " s" << std::endl;
     std::cout << "TIME EXP " << options.currentRun << ": " << printPreamble()
               << " calculationTime " << end_time - start_time << " s | "
               << (end_time - start_time) / cycles << " s averaged" << std::endl;
@@ -814,6 +824,8 @@ void kmeansRecalcMlevel(struct Options &options, const std::string &variant,
   //log the time spent in each component
   if (mpi_rank == 0) {
     std::cout << "TIME EXP " << options.currentRun << ": " << printPreamble()
+              << " initTime " << init_time - start_time << " s" << std::endl;
+    std::cout << "TIME EXP " << options.currentRun << ": " << printPreamble()
               << " calculationTime " << end_time - start_time << " s | "
               << (end_time - start_time) / cycles << " s averaged" << std::endl;
     std::cout << "TIME EXP " << options.currentRun << ": " << printPreamble()
@@ -948,6 +960,8 @@ void kmeansRecalcNoUpdates(struct Options &options, const std::string &variant,
   
   //log the time spent in each component
   if (mpi_rank == 0) {
+    std::cout << "TIME EXP " << options.currentRun << ": " << printPreamble()
+              << " initTime " << init_time - start_time << " s" << std::endl;
     std::cout << "TIME EXP " << options.currentRun << ": " << printPreamble()
               << " calculationTime " << end_time - start_time << " s | "
               << (end_time - start_time) / cycles << " s averaged" << std::endl;

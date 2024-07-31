@@ -28,6 +28,7 @@ account_name: str = "dbuurman"
 date: str = datetime.today().strftime("%d-%m-%Y")
 
 # Experiment 1 default parameters
+# Compares all of Anne's variants on sizes 2^24 to 2^28
 ex1_config: Dict[str, any] = {
     "seed": "971",
     "variant": "own own_inc own_loc own_inc_loc",
@@ -40,6 +41,7 @@ ex1_config: Dict[str, any] = {
 }
 
 # Experiment 2 default parameters
+# Compares all of Anne's variants on varying node and thread counts
 ex2_config: Dict[str, any] = {
     "DAS5": {
         "seed": "971",
@@ -63,7 +65,45 @@ ex2_config: Dict[str, any] = {
     }
 }
 
-execs: List[str] = ["own", "own_inc", "own_loc", "own_inc_loc"] #, "own_values_only", "own_local_values", "own_no_updates"]
+# Experiment 3 default parameters (exp 1 variation)
+# Compares Anne's recalculation variants with new recalculation variants using varying input sizes
+ex3_config: Dict[str, any] = {
+    "seed": "971",
+    "variant": "own own_loc own_im own_m",
+    "size": "24 25 26 27 28",
+    "clusters": [4],
+    "dimension": [4],
+    "nodes": [[8]],
+    "ntasks-per-node": [[8]],
+    "repeat": "10"
+}
+
+# Experiment 4 default parameters (exp 2 variation)
+# Compares Anne's recalculation variants with new recalculation veriants using varying node and thread counts
+ex4_config: Dict[str, any] = {
+    "DAS5": {
+        "seed": "971",
+        "variant": "own own_loc own_im own_m",
+        "size": "28",
+        "clusters": [4],
+        "dimension": [4],
+        "nodes": [[1], [1, 2, 3, 4, 5, 6, 7, 8, 12, 16]],
+        "ntasks-per-node": [[2, 4, 8, 12, 16, 24], [32]],
+        "repeat": "10"
+    },
+    "DAS6": {
+        "seed": "971",
+        "variant": "own own_loc own_im own_m",
+        "size": "28",
+        "clusters": [4],
+        "dimension": [4],
+        "nodes": [[1], [1, 2], [1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 14, 16]],
+        "ntasks-per-node": [[2, 4, 8, 12, 16, 24], [32], [48]],
+        "repeat": "10"
+    }
+}
+
+execs: List[str] = ["own", "own_inc", "own_loc", "own_inc_loc", "own_m", "own_values_only", "own_im"]
 debug = False
 
 def exists(file: str) -> bool:
@@ -234,8 +274,7 @@ def resubmit_jobs(invalid: List[str], filename: str, retries: int = 4) -> List[s
 
 def sort_results(filename: str) -> None:
     """ Sort results in filename according by execs order.
-        Cuts own_inc_loc lines and pastes them at the end
-        Only works for original 4 implementations. """
+        For each exec, all lines are cut, sorted, and added to a result list. """
     def convert(s: str):
         try:
             res = int(s)
@@ -340,6 +379,7 @@ def run_experiment(config: Dict[str, any], options: Dict[str, any], ex_num: int)
     res: int = process_results(output_dir, compute_cluster, scriptpath, ex_num, file_date)
     if res != 0:
         return res
+    # TODO: add extended results (TIME EXP linesAdd)
     
     # Finish up
     print("Done!")
@@ -423,6 +463,10 @@ def main():
         if options["alternative"]:
             ex2_config[options["compute-cluster"]]["size"] = "28" # change to single bigger input size
         return(run_experiment(ex2_config[options["compute-cluster"]], options, 2))
+    elif experiment == 3:
+        return(run_experiment(ex3_config, options, 3))
+    elif experiment == 4:
+        return(run_experiment(ex4_config[options["compute-cluster"]], options, 4))
 
 if __name__ == "__main__":
     sys.exit(main())
