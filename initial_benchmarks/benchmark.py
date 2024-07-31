@@ -104,6 +104,7 @@ ex4_config: Dict[str, any] = {
 }
 
 execs: List[str] = ["own", "own_inc", "own_loc", "own_inc_loc", "own_m", "own_values_only", "own_im"]
+ex_nums: List[int] = [1, 2, 3, 4]
 debug = False
 
 def exists(file: str) -> bool:
@@ -392,7 +393,7 @@ def main():
                             help="Debug mode: no job submits")
     parser.add_argument("--compute-cluster", "--c", dest="compute-cluster", type=str, required=True, choices=["DAS5", "DAS6"],
                             help="Compute cluster in use")
-    parser.add_argument("--experiment", "--e", dest="experiment", type=int, default=1, choices=[1, 2],
+    parser.add_argument("--experiment", "--e", dest="experiment", type=int, default=1, choices=ex_nums,
                             help="Experiment number to execute")
     parser.add_argument("--alternative", "--a", dest="alternative", action="store_true",
                             help="Set alternative configuration for given experiment")
