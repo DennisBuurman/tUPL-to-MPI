@@ -162,22 +162,14 @@ void kmeansRecalc(struct Options &options, const std::string &variant,
   //log the time spent in each component
   if (mpi_rank == 0) {
     std::cout << "TIME EXP " << options.currentRun << ": " << printPreamble()
-              << " init time " << init_time - start_time << " seconds " << std::endl; 
+              << " reassignTime " << cum_reassign_time << " s | "
+              << cum_reassign_time / cycles << " s averaged" << std::endl;
     std::cout << "TIME EXP " << options.currentRun << ": " << printPreamble()
-              << " reassign time "
-              << cum_reassign_time
-              << " | average  "
-              << cum_reassign_time / cycles << " seconds" << std::endl;
+              << " communicationTime "  << cum_update_time << " s | "
+              << cum_update_time / cycles << " s averaged" << std::endl;
     std::cout << "TIME EXP " << options.currentRun << ": " << printPreamble()
-              << " update time "
-              << cum_update_time 
-              << " | average "
-              << cum_update_time / cycles << " seconds" << std::endl;
-    std::cout << "TIME EXP " << options.currentRun << ": " << printPreamble()
-              << " mean recalculation time "
-              << cum_it_end_time
-              << " | average "
-              << cum_it_end_time / cycles << " seconds" << std::endl;
+              << " meanRecalculationTime " << cum_it_end_time << " s | "
+              << cum_it_end_time / cycles << " s averaged" << std::endl;
   }
 
   if (mpi_rank == 0)
@@ -325,20 +317,14 @@ void kmeansIncremental(struct Options &options, const std::string &variant,
   //log the time spent in each component
   if (mpi_rank == 0) {
     std::cout << "TIME EXP " << options.currentRun << ": " << printPreamble()
-              << " reassign time "
-              << cum_reassign_time
-              << " | average  "
-              << cum_reassign_time / cycles << " seconds" << std::endl;
+              << " reassignTime " << cum_reassign_time << " s | "
+              << cum_reassign_time / cycles << " s averaged" << std::endl;
     std::cout << "TIME EXP " << options.currentRun << ": " << printPreamble()
-              << " update time "
-              << cum_update_time 
-              << " | average "
-              << cum_update_time / cycles << " seconds" << std::endl;
+              << " communicationTime "  << cum_update_time << " s | "
+              << cum_update_time / cycles << " s averaged" << std::endl;
     std::cout << "TIME EXP " << options.currentRun << ": " << printPreamble()
-              << " mean recalculation time "
-              << cum_it_end_time
-              << " | average "
-              << cum_it_end_time / cycles << " seconds" << std::endl;
+              << " meanRecalculationTime " << cum_it_end_time << " s | "
+              << cum_it_end_time / cycles << " s averaged" << std::endl;
   }
 
   if (mpi_rank == 0)
@@ -672,20 +658,14 @@ void kmeansRecalcNoDependencies(struct Options &options, const std::string &vari
   //log the time spent in each component
   if (mpi_rank == 0) {
     std::cout << "TIME EXP " << options.currentRun << ": " << printPreamble()
-              << " reassign time "
-              << cum_reassign_time
-              << " | average  "
-              << cum_reassign_time / cycles << " seconds" << std::endl;
+              << " reassignTime " << cum_reassign_time << " s | "
+              << cum_reassign_time / cycles << " s averaged" << std::endl;
     std::cout << "TIME EXP " << options.currentRun << ": " << printPreamble()
-              << " update time "
-              << cum_update_time 
-              << " | average "
-              << cum_update_time / cycles << " seconds" << std::endl;
+              << " communicationTime "  << cum_update_time << " s | "
+              << cum_update_time / cycles << " s averaged" << std::endl;
     std::cout << "TIME EXP " << options.currentRun << ": " << printPreamble()
-              << " mean recalculation time "
-              << cum_it_end_time
-              << " | average "
-              << cum_it_end_time / cycles << " seconds" << std::endl;
+              << " meanRecalculationTime " << cum_it_end_time << " s | "
+              << cum_it_end_time / cycles << " s averaged" << std::endl;
   }
 
   if (mpi_rank == 0)
@@ -825,22 +805,14 @@ void kmeansRecalcMlevel(struct Options &options, const std::string &variant,
   //log the time spent in each component
   if (mpi_rank == 0) {
     std::cout << "TIME EXP " << options.currentRun << ": " << printPreamble()
-              << " init time " << init_time - start_time << " seconds " << std::endl; 
+              << " reassignTime " << cum_reassign_time << " s | "
+              << cum_reassign_time / cycles << " s averaged" << std::endl;
     std::cout << "TIME EXP " << options.currentRun << ": " << printPreamble()
-              << " reassign time "
-              << cum_reassign_time
-              << " | average  "
-              << cum_reassign_time / cycles << " seconds" << std::endl;
+              << " communicationTime "  << cum_update_time << " s | "
+              << cum_update_time / cycles << " s averaged" << std::endl;
     std::cout << "TIME EXP " << options.currentRun << ": " << printPreamble()
-              << " update time "
-              << cum_update_time 
-              << " | average "
-              << cum_update_time / cycles << " seconds" << std::endl;
-    std::cout << "TIME EXP " << options.currentRun << ": " << printPreamble()
-              << " mean recalculation time "
-              << cum_it_end_time
-              << " | average "
-              << cum_it_end_time / cycles << " seconds" << std::endl;
+              << " meanRecalculationTime " << cum_it_end_time << " s | "
+              << cum_it_end_time / cycles << " s averaged" << std::endl;
   }
 
   if (mpi_rank == 0)
@@ -965,22 +937,14 @@ void kmeansRecalcNoUpdates(struct Options &options, const std::string &variant,
   //log the time spent in each component
   if (mpi_rank == 0) {
     std::cout << "TIME EXP " << options.currentRun << ": " << printPreamble()
-              << " init time " << init_time - start_time << " seconds " << std::endl; 
+              << " reassignTime " << cum_reassign_time << " s | "
+              << cum_reassign_time / cycles << " s averaged" << std::endl;
     std::cout << "TIME EXP " << options.currentRun << ": " << printPreamble()
-              << " reassign time "
-              << cum_reassign_time
-              << " | average  "
-              << cum_reassign_time / cycles << " seconds" << std::endl;
+              << " communicationTime "  << cum_update_time << " s | "
+              << cum_update_time / cycles << " s averaged" << std::endl;
     std::cout << "TIME EXP " << options.currentRun << ": " << printPreamble()
-              << " update time "
-              << cum_update_time 
-              << " | average "
-              << cum_update_time / cycles << " seconds" << std::endl;
-    std::cout << "TIME EXP " << options.currentRun << ": " << printPreamble()
-              << " mean recalculation time "
-              << cum_it_end_time
-              << " | average "
-              << cum_it_end_time / cycles << " seconds" << std::endl;
+              << " meanRecalculationTime " << cum_it_end_time << " s | "
+              << cum_it_end_time / cycles << " s averaged" << std::endl;
   }
 
   if (mpi_rank == 0)
