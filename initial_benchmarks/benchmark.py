@@ -83,7 +83,7 @@ ex3_config: Dict[str, any] = {
 ex4_config: Dict[str, any] = {
     "DAS5": {
         "seed": "971",
-        "variant": "own own_loc own_im own_m",
+        "variant": "own own_im own_m",
         "size": "28",
         "clusters": [4],
         "dimension": [4],
@@ -93,7 +93,7 @@ ex4_config: Dict[str, any] = {
     },
     "DAS6": {
         "seed": "971",
-        "variant": "own own_loc own_im own_m",
+        "variant": "own own_im own_m",
         "size": "28",
         "clusters": [4],
         "dimension": [4],
@@ -102,6 +102,11 @@ ex4_config: Dict[str, any] = {
         "repeat": "10"
     }
 }
+
+# TODO: add experiment 1 variant with only localized versions
+# TODO: add experiment 2 variant with only localized versions
+# TODO: add experiment 1 variant comparing best variants
+# TODO: add experiment 2 variant comparing best variants
 
 execs: List[str] = ["own", "own_inc", "own_loc", "own_inc_loc", "own_m", "own_values_only", "own_im"]
 ex_nums: List[int] = [1, 2, 3, 4]
@@ -384,7 +389,11 @@ def run_experiment(config: Dict[str, any], options: Dict[str, any], ex_num: int)
     
     # Finish up
     print("Done!")
-    print(f"Visualize results by running:\n./ex{ex_num}.py --compute-cluster {compute_cluster} --file-date {date} --datapath {output_dir}")
+    if ex_num in [1, 3]:
+        script: str = "input-size-variation.py"
+    elif ex_num in [2, 4]:
+        script: str = "thread-count-variation.py"
+    print(f"Visualize results by running:\n./{script} --compute-cluster {compute_cluster} --file-date {date} --datapath {output_dir} --ex-num {ex_num}")
     return 0
 
 def main():

@@ -21,7 +21,6 @@ from typing import Dict, List
 
 def create_plot(thread_count: List[int], times: Dict[str, float], options) -> None:
     """ Creates the default plot for experiment 2: thread count variation. """
-    name: str = f"{options['compute-cluster']}_{options['file-date']}"
     datapath: str = options["datapath"]
     
     x = np.arange(len(thread_count))
@@ -41,12 +40,12 @@ def create_plot(thread_count: List[int], times: Dict[str, float], options) -> No
 
     ax.set_ylabel("Calculation time (s)")
     ax.set_xlabel("Thread count")
-    ax.set_title(f"Thread count variation: {name}")
+    ax.set_title(f"Thread count variation ({options['compute-cluster']})")
     ax.set_xticks(thread_count)
     ax.legend(loc="upper right", ncol=1)
     # ax.set_ylim(0, 3)
 
-    plt.savefig(f"{datapath}/exp_2_{name}.png")
+    plt.savefig(f"{datapath}/ex{options['ex-num']}_{options['compute-cluster']}_{options['file-date']}.png")
     plt.close(fig)
     # plt.show()
 
@@ -56,16 +55,12 @@ def main():
     # Argument parsing
     parser = ArgumentParser()
     common.add_parameters(parser)
-    parser.add_argument("--file-preamble", dest="file-preamble", type=str, default="EX2-DAS5-RESULTS-",
-                        help="Preamble of results file")
     args = parser.parse_args()
     options = dict(vars(args))
 
-    # TODO: refine
-    if options["compute-cluster"] == "DAS6":
-        options["file-preamble"] = "EX2-DAS6-RESULTS-"
+    prefix = f"EX{options['ex-num']}-{options['compute-cluster']}-RESULTS-"
     
-    file: str = options["datapath"] + "/" + options["file-preamble"] + options["file-date"] + options["file-extension"]
+    file: str = options["datapath"] + "/" + prefix + options["file-date"] + options["file-extension"]
     if not Path(file).is_file():
         print(f"Error: {file} is not a file.", file=sys.stderr)
         return 1
@@ -83,7 +78,7 @@ def main():
     # Create Plots
     create_plot(thread_count, times, options)
     data = common.process_reverse(df, variable)
-    common.create_confidence_interval(data, options, 8, 2)
+    common.create_confidence_interval(data, options, 8, options["ex-num"])
 
 if __name__ == "__main__":
     sys.exit(main())

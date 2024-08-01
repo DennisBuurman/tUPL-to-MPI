@@ -21,8 +21,8 @@ from typing import Dict, List
 
 def create_plot(sizes: List[int], times: Dict[str, float], options) -> None:
     """ Creates the default plot for experiment 1: input size variation. """
-    name: str = f"{options['compute-cluster']}_{options['file-date']}"
     datapath: str = options["datapath"]
+    ex_num: int = options["ex-num"]
 
     x = np.arange(len(sizes))
     width: float = 0.2 # bar width
@@ -39,13 +39,13 @@ def create_plot(sizes: List[int], times: Dict[str, float], options) -> None:
     
     ax.set_ylabel("Calculation time (s)")
     ax.set_xlabel("Input size (2^x)")
-    ax.set_title(f"Input size variation: {name}")
+    ax.set_title(f"Input size variation: {options['compute-cluster']}")
     ax.set_xticks(x + width)
     ax.set_xticklabels(sizes)
     ax.legend(loc="upper left", ncol=1)
     # ax.set_ylim(0, 3)
 
-    plt.savefig(f"{datapath}/exp_1_{name}.png")
+    plt.savefig(f"{datapath}/ex{ex_num}_{options['compute-cluster']}_{options['file-date']}.png")
     plt.close(fig)
     # plt.show()
 
@@ -54,6 +54,7 @@ def create_boxplots(data: Dict, options) -> None:
     cluster: str = options["compute-cluster"]
     date: str = options["file-date"]
     datapath: str = options["datapath"]
+    ex_num: int = options["ex-num"]
 
     for implementation in data:
         fig, ax = plt.subplots()
@@ -64,11 +65,11 @@ def create_boxplots(data: Dict, options) -> None:
             times = data[implementation][size]
             box_plot_data.append(times)
             labels.append(size)
-        ax.set_title(f"{common.names[implementation]} {cluster} exp. 1 runtime distribution {size} ({date})")
+        ax.set_title(f"{common.names[implementation]} {cluster} runtime distribution 2^{size}")
         ax.set_ylabel("Calculation time (s)")
         ax.set_xlabel("Input size (2^x)")
         ax.boxplot(box_plot_data, patch_artist=True, labels=labels)
-        plt.savefig(f"{datapath}/exp_1_bp_{implementation}_{cluster}_{date}")
+        plt.savefig(f"{datapath}/ex{ex_num}_bp_{implementation}_{cluster}_{date}")
         plt.close(fig)
 
 def main():
@@ -77,16 +78,12 @@ def main():
     # Argument parsing
     parser: ArgumentParser = ArgumentParser()
     common.add_parameters(parser)
-    parser.add_argument("--file-preamble", dest="file-preamble", type=str, default="EX1-DAS5-RESULTS-",
-                        help="Preamble of results file")
     args = parser.parse_args()
     options: Dict[str, any] = dict(vars(args))
+    
+    prefix = f"EX{options['ex-num']}-{options['compute-cluster']}-RESULTS-"
 
-    # TODO: refine
-    if options["compute-cluster"] == "DAS6":
-        options["file-preamble"] = "EX1-DAS6-RESULTS-"
-
-    file: str = options["datapath"] + "/" + options["file-preamble"] + options["file-date"] + options["file-extension"]
+    file: str = options["datapath"] + "/" + prefix + options["file-date"] + options["file-extension"]
     if not Path(file).is_file():
         print(f"Error: {file} is not a file.", file=sys.stderr)
         return 1
@@ -101,7 +98,7 @@ def main():
     create_plot(sizes, times, options)
     data = common.process_reverse(df, variable)
     create_boxplots(data, options)
-    common.create_confidence_interval(data, options, 28, 1)
+    common.create_confidence_interval(data, options, 28, options['ex-num'])
 
     return 0
 

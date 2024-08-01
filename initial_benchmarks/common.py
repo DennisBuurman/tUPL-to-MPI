@@ -43,6 +43,8 @@ def add_parameters(parser: ArgumentParser) -> None:
                             help="Date of the results file")
     parser.add_argument("--file-extension", dest="file-extension", type=str, default=".txt",
                             help="File extension of results file")
+    parser.add_argument("--ex-num", dest="ex-num", type=int, default=0,
+                            help="experiment number used for file naming in experiment scripts")
 
 def process(df: DataFrame, variable: str) -> Dict[str, Dict[str, List[float]]]:
     """ Processes data from a result file into a dictionary.
@@ -165,11 +167,11 @@ def create_confidence_interval(data: Dict[str, Dict[str, List[float]]], options:
         x = np.arange(1, len(times)+1)
         mean_values, ci_values = ci_list(times)
         
-        ax.set_title(f"{names[implementation]} {cluster} 95% CI on size {variable} ({date})")
+        ax.set_title(f"{names[implementation]} {cluster} 95% CI on size 2^{variable}")
         ax.set_ylabel("Mean calculation time (s)")
         ax.set_xlabel("Iteration")
         ax.plot(x, mean_values)
         ax.fill_between(x, np.subtract(mean_values, ci_values), np.add(mean_values, ci_values), color='b', alpha=.1)
 
-        plt.savefig(f"{datapath}/exp_{ex_num}_ci_{implementation}_{cluster}_{variable}_{date}")
+        plt.savefig(f"{datapath}/ex{ex_num}_{cluster}_ci_{implementation}_size{variable}_{date}")
         plt.close(fig)
