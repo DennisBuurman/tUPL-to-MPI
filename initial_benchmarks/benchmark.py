@@ -69,7 +69,7 @@ ex2_config: Dict[str, any] = {
 # Compares Anne's recalculation variants with new recalculation variants using varying input sizes
 ex3_config: Dict[str, any] = {
     "seed": "971",
-    "variant": "own own_loc own_im own_m",
+    "variant": "own own_loc own_m own_m_loc own_im own_im_loc",
     "size": "24 25 26 27 28",
     "clusters": [4],
     "dimension": [4],
@@ -108,7 +108,9 @@ ex4_config: Dict[str, any] = {
 # TODO: add experiment 1 variant comparing best variants
 # TODO: add experiment 2 variant comparing best variants
 
-execs: List[str] = ["own", "own_inc", "own_loc", "own_inc_loc", "own_m", "own_values_only", "own_im"]
+execs: List[str] = ["own", "own_inc", "own_loc", "own_inc_loc", 
+                    "own_m", "own_m_loc", "own_values_only", 
+                    "own_values_only_loc", "own_im", "own_im_loc"]
 ex_nums: List[int] = [1, 2, 3, 4]
 debug = False
 

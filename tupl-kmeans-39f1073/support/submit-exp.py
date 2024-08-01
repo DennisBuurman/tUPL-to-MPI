@@ -63,8 +63,11 @@ execs = {
     "own_inc": "MPI_Kmeans_incremental",
     "own_inc_loc": "MPI_Kmeans_incremental_localized",
     "own_values_only": "MPI_Kmeans_values_only",
+    "own_values_only_loc": "MPI_Kmeans_values_only_localized",
     "own_im": "MPI_Kmeans_no_updates",
-    "own_m": "MPI_Kmeans_local_values"
+    "own_im_loc": "MPI_Kmeans_no_updates_localized",
+    "own_m": "MPI_Kmeans_local_values",
+    "own_m_loc": "MPI_Kmeans_local_values_localized"
 }
 
 
