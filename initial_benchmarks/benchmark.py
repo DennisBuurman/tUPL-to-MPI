@@ -66,10 +66,10 @@ ex2_config: Dict[str, any] = {
 }
 
 # Experiment 3 default parameters (exp 1 variation)
-# Compares Anne's recalculation variants with new recalculation variants using varying input sizes
+# Compares new recalculation variants using varying input sizes
 ex3_config: Dict[str, any] = {
     "seed": "971",
-    "variant": "own own_loc own_m own_m_loc own_im own_im_loc",
+    "variant": "own_m own_m_loc own_im own_im_loc",
     "size": "24 25 26 27 28",
     "clusters": [4],
     "dimension": [4],
@@ -79,11 +79,11 @@ ex3_config: Dict[str, any] = {
 }
 
 # Experiment 4 default parameters (exp 2 variation)
-# Compares Anne's recalculation variants with new recalculation veriants using varying node and thread counts
+# Compares new recalculation veriants using varying node and thread counts
 ex4_config: Dict[str, any] = {
     "DAS5": {
         "seed": "971",
-        "variant": "own own_im own_m",
+        "variant": "own_m own_m_loc own_im own_im_loc",
         "size": "28",
         "clusters": [4],
         "dimension": [4],
@@ -93,7 +93,7 @@ ex4_config: Dict[str, any] = {
     },
     "DAS6": {
         "seed": "971",
-        "variant": "own own_im own_m",
+        "variant": "own_m own_m_loc own_im own_im_loc",
         "size": "28",
         "clusters": [4],
         "dimension": [4],
@@ -103,10 +103,8 @@ ex4_config: Dict[str, any] = {
     }
 }
 
-# TODO: add experiment 1 variant with only localized versions
-# TODO: add experiment 2 variant with only localized versions
-# TODO: add experiment 1 variant comparing best variants
-# TODO: add experiment 2 variant comparing best variants
+# TODO: add experiment 1 variant comparing best old and new versions
+# TODO: add experiment 2 variant comparing best old and new versions
 
 execs: List[str] = ["own", "own_inc", "own_loc", "own_inc_loc", 
                     "own_m", "own_m_loc", "own_values_only", 
