@@ -103,6 +103,57 @@ ex4_config: Dict[str, any] = {
     }
 }
 
+# Experiment 5 default parameters (exp 1 variation)
+# Compares best variations (old + new)
+ex5_config: Dict[str, any] = {
+    "seed": "971",
+    "variant": "own_inc own_inc_loc own_m own_m_loc",
+    "size": "24 25 26 27 28",
+    "clusters": [4],
+    "dimension": [4],
+    "nodes": [[8]],
+    "ntasks-per-node": [[8]],
+    "repeat": "10"
+}
+
+# Experiment 6 default parameters (exp 2 variation)
+# Compares best veriants using varying node and thread counts
+ex6_config: Dict[str, any] = {
+    "DAS5": {
+        "seed": "971",
+        "variant": "own_inc own_inc_loc own_m own_m_loc",
+        "size": "28",
+        "clusters": [4],
+        "dimension": [4],
+        "nodes": [[1], [1, 2, 3, 4, 5, 6, 7, 8, 12, 16]],
+        "ntasks-per-node": [[2, 4, 8, 12, 16, 24], [32]],
+        "repeat": "10"
+    },
+    "DAS6": {
+        "seed": "971",
+        "variant": "own_inc own_inc_loc own_m own_m_loc",
+        "size": "28",
+        "clusters": [4],
+        "dimension": [4],
+        "nodes": [[1], [1, 2], [1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 14, 16]],
+        "ntasks-per-node": [[2, 4, 8, 12, 16, 24], [32], [48]],
+        "repeat": "10"
+    }
+}
+
+# Experiment 7 default parameters (exp 1 variation)
+# Compares original (own) with ignored dependencies variant (own_values_only)
+ex7_config: Dict[str, any] = {
+    "seed": "971",
+    "variant": "own own_values_only",
+    "size": "24 25 26 27 28",
+    "clusters": [4],
+    "dimension": [4],
+    "nodes": [[8]],
+    "ntasks-per-node": [[8]],
+    "repeat": "10"
+}
+
 # TODO: add experiment 1 variant comparing best old and new versions
 # TODO: add experiment 2 variant comparing best old and new versions
 
@@ -468,15 +519,20 @@ def main():
     if experiment == 1:
         if options["alternative"]:
             ex1_config["nodes"] = [[1]] # change to single node comparison experiment
-        return(run_experiment(ex1_config, options, 1))
+        return(run_experiment(ex1_config, options, experiment))
     elif experiment == 2:
-        if options["alternative"]:
-            ex2_config[options["compute-cluster"]]["size"] = "28" # change to single bigger input size
-        return(run_experiment(ex2_config[options["compute-cluster"]], options, 2))
+        return(run_experiment(ex2_config[options["compute-cluster"]], options, experiment))
     elif experiment == 3:
-        return(run_experiment(ex3_config, options, 3))
+        return(run_experiment(ex3_config, options, experiment))
     elif experiment == 4:
-        return(run_experiment(ex4_config[options["compute-cluster"]], options, 4))
+        return(run_experiment(ex4_config[options["compute-cluster"]], options, experiment))
+    elif experiment == 5:
+        return(run_experiment(ex5_config, options, experiment))
+    elif experiment == 6:
+        return(run_experiment(ex6_config[options["compute-cluster"]], options, experiment))
+    elif experiment == 7:
+        return(run_experiment(ex7_config, options, experiment))
+
 
 if __name__ == "__main__":
     sys.exit(main())
