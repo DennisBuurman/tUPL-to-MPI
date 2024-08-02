@@ -2,8 +2,9 @@
 
 # 
 # Script to run the benchmark of experiment 1 and 2 of Anne Hommelbergs work.
+# Additional experiments are added to test and compare new variants.
 # Results will be processed into .txt files, which can be visualized using
-# the corresponding visualize.py file.
+# the .py corresponding to the performed experiment.
 # 
 # Author: Dennis Buurman, Leiden University
 
