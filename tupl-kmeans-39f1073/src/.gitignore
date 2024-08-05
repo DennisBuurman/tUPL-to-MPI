@@ -5,4 +5,7 @@ MPI_Kmeans_localized
 MPI_Kmeans_values_only
 MPI_Kmeans_local_values
 MPI_Kmeans_no_updates
+MPI_Kmeans_values_only_localized
+MPI_Kmeans_local_values_localized
+MPI_Kmeans_no_updates_localized
 *.o
