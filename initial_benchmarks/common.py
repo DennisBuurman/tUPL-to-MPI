@@ -23,6 +23,21 @@ headers: List[str] = [
     "Iterations"
 ]
 
+timing_headers: List[str] = [
+    "Implementation",
+    "Input Size",
+    "Clusters", 
+    "Dimension", 
+    "Nodes",
+    "Tasks Per Node",
+    "Worst Init. Time", 
+    "Worst Calc. Time", 
+    "Worst Reassign Time",
+    "Worst Comm. Time", 
+    "Worst Recalc. Time",
+    "Iterations"
+]
+
 # Implementation number as compared to Annes work
 names: Dict[str, str] = {
     "own": "Implementation 1",
