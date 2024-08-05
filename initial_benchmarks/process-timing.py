@@ -102,7 +102,7 @@ def main() -> int:
     
     results_dir: Path = Path(sys.argv[1])
 
-    print("variant, size, clusters, dimension, n_nodes, ntasks_per_node, init, calculation, reassign, communication, recalculation, iterations")
+    print("variant, size, clusters, dimension, n_nodes, ntasks_per_node, init_time, calculation_time, reassign_time, communication_time, recalculation_time, iterations")
     for filename in results_dir.glob("*.out"):
         process_file(filename)
     

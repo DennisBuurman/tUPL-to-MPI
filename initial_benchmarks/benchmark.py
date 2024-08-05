@@ -155,9 +155,6 @@ ex7_config: Dict[str, any] = {
     "repeat": "10"
 }
 
-# TODO: add experiment 1 variant comparing best old and new versions
-# TODO: add experiment 2 variant comparing best old and new versions
-
 execs: List[str] = ["own", "own_inc", "own_loc", "own_inc_loc", 
                     "own_m", "own_m_loc", "own_values_only", 
                     "own_values_only_loc", "own_im", "own_im_loc"]
@@ -370,6 +367,23 @@ def process_results(output_dir: str, compute_cluster: str, scriptpath: str, ex_n
     print(f"> Results saved in {filename}")
     return 0
 
+def process_timing(output_dir: str, compute_cluster: str, ex_num: int, file_date: str) -> int:
+    """ Process the timing from the results present in the current directory.
+        process-timing.py script needs to be in current working directory.
+        Results are saved in directory output_dir. """
+    if not Path(output_dir).is_dir():
+        Path(output_dir).mkdir(parents=True)
+    filename = f"{output_dir}/EX{ex_num}-{compute_cluster}-TIMING-RESULTS-{file_date}.txt"
+    with open(filename, "w") as result_file:
+        file = "process-timing.py"
+        if not exists(file):
+            return 1
+        subprocess.run([f"./{file}", "."], stdout=result_file)
+    print(f"> Running command: ./{file} .")
+    sort_results(filename)
+    print(f"> Results saved in {filename}")
+    return 0
+
 def run_experiment(config: Dict[str, any], options: Dict[str, any], ex_num: int) -> int:
     """ Run experiment ex_num with the provided experiment configuration and command line arguments. """
     print(f"> Running experiment {ex_num} ...")
@@ -437,13 +451,15 @@ def run_experiment(config: Dict[str, any], options: Dict[str, any], ex_num: int)
     res: int = process_results(output_dir, compute_cluster, scriptpath, ex_num, file_date)
     if res != 0:
         return res
-    # TODO: add extended results (TIME EXP linesAdd)
+    res = process_timing(output_dir, compute_cluster, ex_num, file_date)
+    if res != 0:
+        return res
     
     # Finish up
     print("Done!")
-    if ex_num in [1, 3]:
+    if ex_num in [1, 3, 5, 7]:
         script: str = "input-size-variation.py"
-    elif ex_num in [2, 4]:
+    elif ex_num in [2, 4, 6]:
         script: str = "thread-count-variation.py"
     print(f"Visualize results by running:\n./{script} --compute-cluster {compute_cluster} --file-date {date} --datapath {output_dir} --ex-num {ex_num}")
     return 0
@@ -489,7 +505,9 @@ def main():
     del options["clean"]
 
     if options["process"]:
-        return process_results(options["outputdir"], options["compute-cluster"], options["scriptpath"], options["experiment"], options["date"])
+        process_results(options["outputdir"], options["compute-cluster"], options["scriptpath"], options["experiment"], options["date"])
+        process_timing(options["outputdir"], options["compute-cluster"], options["experiment"], options["date"])
+        return 0
     del options["process"]
 
     # Only validate results
