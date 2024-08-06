@@ -23,7 +23,7 @@ def parse_job_name(jobname : str) -> dict:
     return params
 
 def process_file(filename: Path) -> None:
-    print("Processing file:", filename, file=sys.stderr)
+    print("Processing file:", filename)
 
     params: Dict = parse_job_name(filename.name)
     
