@@ -462,6 +462,7 @@ def run_experiment(config: Dict[str, any], options: Dict[str, any], ex_num: int)
     elif ex_num in [2, 4, 6]:
         script: str = "thread-count-variation.py"
     print(f"Visualize results by running:\n./{script} --compute-cluster {compute_cluster} --file-date {date} --datapath {output_dir} --ex-num {ex_num}")
+    print(f"Optional; Create timing stacks by running:\n./timing-stack.py --compute-cluster {compute_cluster} --file-date {date} --datapath {output_dir} --ex-num {ex_num}")
     return 0
 
 def main():

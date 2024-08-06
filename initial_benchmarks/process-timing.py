@@ -79,17 +79,17 @@ def process_file(filename: Path) -> None:
     # Write output
     # variant, size, clusters, dimension, n_nodes, ntasks_per_node, 
     # init, calc, reassign, communication, recalc, iterations
-                    
-    worstcalctime = max(results[exp]["calculationTime"])
-    # worstcalctimeavg = max(results[exp]["calculationTimeAvg"])
-    worstreassigntime = max(results[exp]["reassignTime"])
-    # worstreassigntimeavg = max(results[exp]["reassignTimeAvg"])
-    worstcommunicationtime = max(results[exp]["communicationTime"])
-    # worstcommunicationtimeavg = max(results[exp]["communicationTimeAvg"])
-    worstmeanrecalctime = max(results[exp]["meanRecalculationTime"])
-    # worstmeanrecalctimeavg = max(results[exp]["meanRecalculationTimeAvg"])
 
     for exp in results:
+        worstcalctime = max(results[exp]["calculationTime"])
+        # worstcalctimeavg = max(results[exp]["calculationTimeAvg"])
+        worstreassigntime = max(results[exp]["reassignTime"])
+        # worstreassigntimeavg = max(results[exp]["reassignTimeAvg"])
+        worstcommunicationtime = max(results[exp]["communicationTime"])
+        # worstcommunicationtimeavg = max(results[exp]["communicationTimeAvg"])
+        worstmeanrecalctime = max(results[exp]["meanRecalculationTime"])
+        # worstmeanrecalctimeavg = max(results[exp]["meanRecalculationTimeAvg"])
+
         print(params["variant"], params["size"], params["clusters"],
               params["dimension"], params["n_nodes"], params["ntasks_per_node"],
               max(results[exp]["initTime"]), worstcalctime, worstreassigntime, worstcommunicationtime,
