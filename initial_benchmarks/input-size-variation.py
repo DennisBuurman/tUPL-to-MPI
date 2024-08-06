@@ -45,7 +45,7 @@ def create_plot(sizes: List[int], times: Dict[str, float], options) -> None:
     ax.legend(loc="upper left", ncol=1)
     # ax.set_ylim(0, 3)
 
-    plt.savefig(f"{datapath}/ex{ex_num}_{options['compute-cluster']}_{options['file-date']}.png")
+    plt.savefig(f"{datapath}/ex{ex_num}_{options['compute-cluster']}_isv_{options['file-date']}.png")
     plt.close(fig)
     # plt.show()
 

@@ -14,7 +14,6 @@ from pandas import DataFrame
 import numpy as np
 from argparse import ArgumentParser
 
-from pprint import pprint
 import common
 
 from typing import Dict, List
@@ -65,7 +64,14 @@ def preprocess(df: DataFrame) -> Dict[str, Dict[str, Dict[str, List[float]]]]:
 
     return d
 
-def stacked_plot(data: Dict[str, Dict[str, float]], size: int):
+def stacked_plot(data: Dict[str, Dict[str, float]], size: int, options: Dict[str, any]):
+    datapath: str = options["datapath"]
+    ex_num: int = options["ex-num"]
+    cluster: str = options["compute-cluster"]
+    date: str = options["file-date"]
+
+    width: float = 0.5 # bar width
+
     x: List[str] = list() # [implementations]
     Y: List[List[float]] = list() # list of times per implementation
     legend: List[str] = list() # list of names per timing variable
@@ -80,6 +86,9 @@ def stacked_plot(data: Dict[str, Dict[str, float]], size: int):
                 legend.append(v)
         Y.append(y)
 
+    # Calculate y-limit
+    limit: float = 1.3 * max([sum(y) for y in Y])
+
     # Rotate and inverse Y to get 'stackable' lists
     Y = list(zip(*Y))[::-1][::-1]
 
@@ -89,23 +98,23 @@ def stacked_plot(data: Dict[str, Dict[str, float]], size: int):
         if (index > 0):
             for i in range(index, 0, -1):
                 bottom += np.array(Y[i-1])
-        plt.bar(x, Y[index], bottom=bottom)
+        plt.bar(x, Y[index], width=width, bottom=bottom)
 
     # Add plot parameters
+    plt.ylim((0, limit))
     plt.xlabel("Implementation")
     plt.ylabel("Time (s)")
-    plt.legend(legend)
+    plt.legend(legend, loc="upper left", ncol=2)
     plt.title("Average Iteration Time Distribution")
-    # plt.savefig(f"{datapath}/ex{ex_num}_{cluster}_ci_{implementation}_size{variable}_{date}")
-    plt.savefig(f"testing_s{size}")
+    plt.savefig(f"{datapath}/ex{ex_num}_{cluster}_ts_s{size}_{date}.png")
     plt.close()
             
 
-def create_plots(data: Dict[str, Dict[str, Dict[str, float]]]):
+def create_plots(data: Dict[str, Dict[str, Dict[str, float]]], options: Dict[str, any]):
     """ Create plot for each size in data argument. """
     for size in data:
         plot_data = data[size]
-        stacked_plot(plot_data, size)
+        stacked_plot(plot_data, size, options)
 
 def main():
     # Argument parsing
@@ -126,7 +135,7 @@ def main():
     data = average_data(data)
 
     # Plot data
-    create_plots(data)
+    create_plots(data, options)
 
 
 if __name__ == "__main__":
