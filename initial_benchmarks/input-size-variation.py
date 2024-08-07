@@ -78,6 +78,8 @@ def main():
     # Argument parsing
     parser: ArgumentParser = ArgumentParser()
     common.add_parameters(parser)
+    parser.add_argument("--per-iteration", action="store_true", 
+                        help="divide calculation times by iterations") 
     args = parser.parse_args()
     options: Dict[str, any] = dict(vars(args))
     
@@ -90,7 +92,8 @@ def main():
     
     # Preprocessing
     df: DataFrame = pd.read_csv(file, delim_whitespace=True, names=common.headers)
-    data: Dict[str, Dict[str, List[float]]] = common.process(df, variable)
+    per_iteration: bool = True if "per-iteration" in options else False
+    data: Dict[str, Dict[str, List[float]]] = common.process(df, variable, per_iteration=per_iteration)
     data = common.average_calc_times(data)
     sizes, times = common.serialize(data)
 

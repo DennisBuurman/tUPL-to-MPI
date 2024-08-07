@@ -64,7 +64,7 @@ def add_parameters(parser: ArgumentParser) -> None:
     parser.add_argument("--ex-num", dest="ex-num", type=int, default=0,
                             help="experiment number used for file naming in experiment scripts")
 
-def process(df: DataFrame, variable: str) -> Dict[str, Dict[str, List[float]]]:
+def process(df: DataFrame, variable: str, per_iteration=False) -> Dict[str, Dict[str, List[float]]]:
     """ Processes data from a result file into a dictionary.
         Preps data for general graph. 
         variable should be in the headers global list."""
@@ -79,7 +79,7 @@ def process(df: DataFrame, variable: str) -> Dict[str, Dict[str, List[float]]]:
     for _, row in df.iterrows():
         implementation: str = row["Implementation"]
         var: str = row[variable]
-        time: float = row["Worst Calc. Time"]
+        time: float = row["Worst Calc. Time"] if not per_iteration else row["Worst Calc. Time"] / row["Iterations"]
         if var in d:
             time_per_implementation: Dict = d[var]
             if implementation in time_per_implementation:
