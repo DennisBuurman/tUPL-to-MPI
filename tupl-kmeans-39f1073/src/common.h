@@ -321,6 +321,7 @@ static inline void initializeMeans(const struct Options &options,
   MPI_Allreduce(meanSizeBuff, meanSize, options.numMeans, MPI_UINT64_T, MPI_SUM, MPI_COMM_WORLD);
 }
 
+// Transforms 2d vector of means to 2d array of means
 inline void vector_to_mean_values(std::vector<std::vector<double>> v, double **meanValues) {
   for (unsigned int i = 0; i < v.size(); i++) {
     for (unsigned int j = 0; j < v[i].size(); j++) {
@@ -329,6 +330,7 @@ inline void vector_to_mean_values(std::vector<std::vector<double>> v, double **m
   }
 }
 
+// Randomly assign points to means (for random initialization) 
 template<typename D, typename B>
 inline void assign_initial_points(const struct Options &options, D *data, uint64_t *meanSize, uint64_t *meanSizeBuff, double **meanValues, double *meanValuesBuff, B *belongsToMean) {
   // TODO init: create other assign pattern (such as sequential assignment of points to clusters)
@@ -349,6 +351,7 @@ inline void assign_initial_points(const struct Options &options, D *data, uint64
   MPI_Allreduce(meanSizeBuff, meanSize, options.numMeans, MPI_UINT64_T, MPI_SUM, MPI_COMM_WORLD);
 }
 
+// Initialize means from numbered initial means file
 template<typename D, typename B>
 static inline void initialize_means_from_file(const struct Options &options,
                                               D *data,
@@ -419,21 +422,22 @@ static inline void recalcMeans(const struct Options &options,
   MPI_Allreduce(meanSizeBuff, meanSize, options.numMeans, MPI_UINT64_T, MPI_SUM, MPI_COMM_WORLD);
 }
 
+// Recalculate means using local partitions of meanValues and meanSize
 template<typename D, typename B>
 static inline void recalcMeansMlevel(const struct Options &options,
                                D *data,
                                uint64_t *meanSize,
                                uint64_t *meanSizeBuff,
-                               uint64_t * meanSizeLocal, // M level recalc
+                               uint64_t * meanSizeLocal,
                                double **meanValues,
                                double *meanValuesBuff,
-                               double **meanValuesLocal, // M level recalc
+                               double **meanValuesLocal,
                                B *belongsToMean)
 {
   std::fill(meanSizeBuff, meanSizeBuff + options.numMeans, 0);
   std::fill(meanValuesBuff, meanValuesBuff + options.numMeans * options.dataDim, 0.0);
 
-  // M level recalc: here we need the local mean, otherwise we would multiply with total size for each process.
+  // NEW: here we need the local mean, otherwise we would multiply with total size for each process.
   for (int mean = 0; mean < options.numMeans; mean++) {
     meanSizeBuff[mean] = meanSizeLocal[mean];
     for (int d = 0; d < options.dataDim; d++) {
@@ -445,12 +449,13 @@ static inline void recalcMeansMlevel(const struct Options &options,
   MPI_Allreduce(meanSizeBuff, meanSize, options.numMeans, MPI_UINT64_T, MPI_SUM, MPI_COMM_WORLD);
 }
 
+// Sum-reduce mean values sum so means can be updated (globally)
 template<typename D, typename B>
 static inline void recalcMeansValuesOnly(const struct Options &options,
                                D *data,
                                double **meanValues,
                                double *meanValuesBuff,
-                               double **meanValuesLocal, // M level recalc
+                               double **meanValuesLocal,
                                B *belongsToMean)
 {
   std::fill(meanValuesBuff, meanValuesBuff + options.numMeans * options.dataDim, 0.0);
