@@ -23,6 +23,7 @@ headers: List[str] = [
     "Iterations"
 ]
 
+# Column headers of timing results file entries
 timing_headers: List[str] = [
     "Implementation",
     "Input Size",
@@ -38,7 +39,7 @@ timing_headers: List[str] = [
     "Iterations"
 ]
 
-# Implementation number as compared to Annes work
+# Implementation numbers of all available variants, not to be confused with executable names! 
 names: Dict[str, str] = {
     "own": "Implementation 1",
     "own_inc": "Implementation 2",
@@ -53,6 +54,7 @@ names: Dict[str, str] = {
 }
 
 def add_parameters(parser: ArgumentParser) -> None:
+    """ Adds default parameters for experiment visualization scripts. """
     parser.add_argument("--datapath", dest="datapath", type=str, default="results",
                             help="Location of the results file to process")
     parser.add_argument("--compute-cluster", dest="compute-cluster", type=str, default="DAS5",
