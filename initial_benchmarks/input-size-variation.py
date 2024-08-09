@@ -73,6 +73,8 @@ def create_boxplots(data: Dict, options) -> None:
         plt.close(fig)
 
 def main():
+    # Header variable to use as x-axis in result graphs
+    # Can be chosen from 'headers' present in common.py
     variable: str = "Input Size"
 
     # Argument parsing
@@ -85,6 +87,7 @@ def main():
     
     prefix = f"EX{options['ex-num']}-{options['compute-cluster']}-RESULTS-"
 
+    # Check if results file exists
     file: str = options["datapath"] + "/" + prefix + options["file-date"] + options["file-extension"]
     if not Path(file).is_file():
         print(f"Error: {file} is not a file.", file=sys.stderr)

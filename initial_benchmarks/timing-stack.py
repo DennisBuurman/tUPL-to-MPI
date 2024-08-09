@@ -19,6 +19,7 @@ import common
 from typing import Dict, List
 
 # Variables used for stacked bar plot
+# Variables must be in 'timing_headers' from common.py!
 variables = [
     "Worst Init. Time", 
     "Worst Reassign Time",
@@ -37,8 +38,8 @@ def average_data(data: Dict[str, Dict[str, Dict[str, List[float]]]]) -> Dict[str
     return data
 
 def preprocess(df: DataFrame) -> Dict[str, Dict[str, Dict[str, List[float]]]]:
-    """ Preprocessing for stacked bar plots. 
-        Creates """
+    """ Preprocessing for stacked bar plots. Creates a three-level deep dictionary needed 
+        to separate input sizes, implementations, and component times (in that order). """
     d: Dict[str, Dict[str, Dict[str, List[float]]]] = dict()
     df.reset_index()
 
@@ -65,6 +66,7 @@ def preprocess(df: DataFrame) -> Dict[str, Dict[str, Dict[str, List[float]]]]:
     return d
 
 def stacked_plot(data: Dict[str, Dict[str, float]], size: int, options: Dict[str, any]):
+    """ Creates a stacked bar chart showing time to compute each of the present components. """
     datapath: str = options["datapath"]
     ex_num: int = options["ex-num"]
     cluster: str = options["compute-cluster"]
@@ -109,7 +111,6 @@ def stacked_plot(data: Dict[str, Dict[str, float]], size: int, options: Dict[str
     plt.savefig(f"{datapath}/ex{ex_num}_{cluster}_ts_s{size}_{date}.png")
     plt.close()
             
-
 def create_plots(data: Dict[str, Dict[str, Dict[str, float]]], options: Dict[str, any]):
     """ Create plot for each size in data argument. """
     for size in data:

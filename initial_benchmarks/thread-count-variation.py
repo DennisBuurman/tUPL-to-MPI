@@ -50,16 +50,19 @@ def create_plot(thread_count: List[int], times: Dict[str, float], options) -> No
     # plt.show()
 
 def main():
+    # Header variable to use as x-axis in result graphs
+    # Can be chosen from 'headers' present in common.py
     variable: str = "Thread Count"
 
     # Argument parsing
-    parser = ArgumentParser()
+    parser: ArgumentParser = ArgumentParser()
     common.add_parameters(parser)
     args = parser.parse_args()
     options = dict(vars(args))
 
     prefix = f"EX{options['ex-num']}-{options['compute-cluster']}-RESULTS-"
     
+    # Check if results file exists
     file: str = options["datapath"] + "/" + prefix + options["file-date"] + options["file-extension"]
     if not Path(file).is_file():
         print(f"Error: {file} is not a file.", file=sys.stderr)
