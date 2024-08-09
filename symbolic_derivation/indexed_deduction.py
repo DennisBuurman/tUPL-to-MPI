@@ -205,7 +205,7 @@ def simplify_to_sum(expr, x, n, start: int = 0, end: int = None, step: int = 1):
     
     return chain[-1]
 
-def indexed_deduction():
+def indexed_deduction() -> None:
     print(">>> Step 1: solve (4) for S[n+1] <<<")
     f = i_equations[4]
     x = S[n+1]

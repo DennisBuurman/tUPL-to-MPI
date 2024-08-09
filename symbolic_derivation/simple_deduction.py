@@ -3,7 +3,7 @@ from sympyutil import print_equation, print_linear_equation
 
 from sympy import solve, Sum, init_printing
 
-def simple_deduction():
+def simple_deduction() -> None:
     """ Creates a deduction using functions and substitutions. """
     # (1) s(n) = s(n-1) + 1 substitution
     f = f_equations[4]

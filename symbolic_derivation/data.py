@@ -1,4 +1,5 @@
 """
+K-means core loop body operations:\n
 1) PM_C[PM[i]] = (PM_C[PM[i]] * PM_S[PM[i]] - PC[i])/(PM_S[PM[i]] - 1)\n
 2) PM_S[PM[i]] = PM_S[PM[i]] - 1\n
 3) PM_C[m]     = (PM_C[m] * PM_S[m] + PC[i])/(PM_S[m] + 1)\n

@@ -6,6 +6,7 @@ from typing import List, Tuple, Dict
 
 
 class Node:
+    """ Concept of expression node from substition tree (class Tree). """
     def __init__(self, expression: any) -> None:
         self.expression: any = expression
         self.init_components()
@@ -22,6 +23,7 @@ class Node:
         pass
 
 class Tree:
+    """ Concept of substitution tree meant to automate the synchronization delay tUPL transformation. """
     def __init__(self, root_nodes: List[Node], conditions: List[any]) -> None:
         self.conditions: List[any] = conditions # candidate conditions
         self.nodes: List[Node] = root_nodes # list of nodes in tree

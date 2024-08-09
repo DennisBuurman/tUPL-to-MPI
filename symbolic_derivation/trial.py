@@ -1,11 +1,13 @@
 from data import *
 from sympyutil import print_equation, print_linear_equation
 
+from typing import List
+
 from sympy import solve, rsolve, init_printing
 
-def regular_solve(debug=True):
+def regular_solve(debug=True) -> List[any]:
     """ Tries to solve the equations using the sympy.solve function."""
-    ans = []
+    ans: List[any] = []
 
     # What does it mean if pmc = pc? This is a clue for iterative versions
     f = equations[1]
@@ -24,12 +26,12 @@ def regular_solve(debug=True):
 
     return ans
 
-def linear_solve(debug=True):
+def linear_solve(debug=True) -> List[any]:
     """ Tries to solve the expressions as sets using the sympy.solve function. """
-    ans = []
+    ans: List[any] = []
     
     # Promising: expanding this with steps i might provide the desired answer
-    f = [expressions[1], expressions[2]]
+    f: List[any] = [expressions[1], expressions[2]]
     x = pmc
     a = solve(f, x)
     ans.append((f, x, a))
@@ -43,7 +45,7 @@ def linear_solve(debug=True):
         print_linear_equation(f, x, a)
 
     # Weirdly enough, this equation set is empty
-    f = [expressions[3], expressions[4]]
+    f: List[any] = [expressions[3], expressions[4]]
     x = pmc
     a = solve(f, x)
     ans.append((f, x, a))
@@ -52,9 +54,9 @@ def linear_solve(debug=True):
 
     return ans
 
-def function_solve(debug=True):
+def function_solve(debug=True) -> List[any]:
     """ Tries to solve the f_equations using the sympy.solve function."""
-    ans = []
+    ans: List[any] = []
 
     # This shows us that s(n) can be substituted with s(n-1)-1 
     # Notice that this only applies to equations 1 and 2, because they address using 'PM[i]'
@@ -106,12 +108,12 @@ def function_solve(debug=True):
 
     return ans
 
-def function_linear_solve(debug=True):
+def function_linear_solve(debug=True) -> List[any]:
     """ Tries to solve the f_equations as sets using the sympy.solve function. """
-    ans = []
+    ans: List[any] = []
 
     # Promising: c(n) = p(n)/s(n); Can we prove this means for [0, 1, ..., n]?
-    f = [f_expressions[1], f_expressions[2]]
+    f: List[any] = [f_expressions[1], f_expressions[2]]
     x = c(n)
     a = solve(f, x)
     ans.append((f, x, a))
@@ -134,9 +136,9 @@ def function_linear_solve(debug=True):
 
     return ans
 
-def recurrent_solve(debug=True):
+def recurrent_solve(debug=True) -> List[any]:
     """ Tries to solve the f_equations using the sympy.rsolve function."""
-    ans = []
+    ans: List[any] = []
     i = symbols('i', integer=True, positive=True)
 
     # Recurrent solve is useful to determine that s(n) changes from a constant i, which is the init amount

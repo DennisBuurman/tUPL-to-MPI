@@ -1,11 +1,13 @@
-def print_equation(f, x, a):
+from typing import List
+
+def print_equation(f, x, a) -> None:
     """ Prints a function 'f' and the result 'a' of solving 'f' for 'x'."""
     s = f"{f} = 0 -> {x} = {a}"
     print("-"*len(s))
     print(s)
     print("-"*len(s))
 
-def print_linear_equation(F, x, a):
+def print_linear_equation(F, x, a) -> None:
     """ Prints a set of functions 'F' and the result 'a' of solving 'F' for 'x'."""
     s = f"-> {x} = {a}"
     print("-"*len(s))
@@ -14,8 +16,9 @@ def print_linear_equation(F, x, a):
     print(s)
     print("-"*len(s))
 
-def extract_args(expr):
-    args = []
+def extract_args(expr) -> List[any]:
+    """ Extract arguments from expression """
+    args: List[any] = []
     if len(expr.args) > 1:
         for subexpr in expr.args:
             for arg in extract_args(subexpr):
@@ -24,7 +27,8 @@ def extract_args(expr):
         args = [expr.args[0]]
     return args
 
-def get_chain_changes(chain):
+def get_chain_changes(chain: List[any]) -> List[any]:
+    """ Returns changes from start to end of expression chain. """
     if len(chain) < 1:
         return []
     changes = [chain[0][1]]
@@ -36,8 +40,8 @@ def get_chain_changes(chain):
         prev = x[1]
     return changes
 
-def get_subs_chain(base, generated):
-    chain = [base]
+def get_subs_chain(base, generated) -> List[any]:
+    chain: List[any] = [base]
     prev_x, prev_expr = base
     for x, expr in generated:
         prev_x, prev_expr = (x, expr.subs(prev_x, prev_expr))
