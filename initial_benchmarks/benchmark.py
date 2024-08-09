@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 
 # 
-# Script to run the benchmark of experiment 1 and 2 of Anne Hommelbergs work.
+# Script to run experiments on DAS5 and DAS6.
+# Experiment configurations contain experiment 1 and 2 of Anne Hommelbergs work.
 # Additional experiments are added to test and compare new variants.
 # Results will be processed into .txt files, which can be visualized using
 # the .py corresponding to the performed experiment.
+# Command for visualizing the results will be printed to the terminal.
 # 
 # Author: Dennis Buurman, Leiden University
 
@@ -22,7 +24,10 @@ import operator
 
 from typing import Dict, List, Tuple
 
+# TODO: create global formatted strings for result and graph file names
+
 # DAS account name
+# TODO: set account name so script can grep submitted jobs from experiment!
 account_name: str = "dbuurman"
 
 # Date string
@@ -30,6 +35,7 @@ date: str = datetime.today().strftime("%d-%m-%Y")
 
 # Experiment 1 default parameters
 # Compares all of Anne's variants on sizes 2^24 to 2^28
+# Experiment 1 from Anne's work
 ex1_config: Dict[str, any] = {
     "seed": "971",
     "variant": "own own_inc own_loc own_inc_loc",
@@ -43,6 +49,7 @@ ex1_config: Dict[str, any] = {
 
 # Experiment 2 default parameters
 # Compares all of Anne's variants on varying node and thread counts
+# Experiment 2 from Anne's work
 ex2_config: Dict[str, any] = {
     "DAS5": {
         "seed": "971",
@@ -155,10 +162,14 @@ ex7_config: Dict[str, any] = {
     "repeat": "10"
 }
 
+# List of all variant names, not to be confused with executable names!
 execs: List[str] = ["own", "own_inc", "own_loc", "own_inc_loc", 
                     "own_m", "own_m_loc", "own_values_only", 
                     "own_values_only_loc", "own_im", "own_im_loc"]
-ex_nums: List[int] = [1, 2, 3, 4]
+
+# List of all experiment numbers ready to run. Don't forget to add the experiment number once the config is ready!
+ex_nums: List[int] = [1, 2, 3, 4, 5, 6, 7]
+
 debug = False
 
 def exists(file: str) -> bool:
@@ -221,7 +232,7 @@ def sleep_bar(seconds: int, msg="Waiting") -> None:
 
 def wait_on_queue() -> None:
     """ Wait for all processes of a given account name to exit the queue, or 15 mins.
-        Visualized with a progress bar on the 15 min timer. """
+        Visualized with a progress bar on the 15 min timer. Be sure to set the account_name correctly!"""
     try:
         grep: str = subprocess.check_output(f"squeue | grep {account_name}", shell=True)
     except Exception as e:
@@ -331,6 +342,7 @@ def sort_results(filename: str) -> None:
     """ Sort results in filename according by execs order.
         For each exec, all lines are cut, sorted, and added to a result list. """
     def convert(s: str):
+        """ Converts a string value to int or float. """
         try:
             res = int(s)
         except ValueError as e:
@@ -457,6 +469,7 @@ def run_experiment(config: Dict[str, any], options: Dict[str, any], ex_num: int)
     
     # Finish up
     print("Done!")
+    # TODO: for each new experiment, create command to visualize experiment!
     if ex_num in [1, 3, 5, 7]:
         script: str = "input-size-variation.py"
     elif ex_num in [2, 4, 6]:
@@ -505,13 +518,14 @@ def main():
         return 0
     del options["clean"]
 
+    # Only process results of results files with provided 'dd-mm-yyyy' date suffix
     if options["process"]:
         process_results(options["outputdir"], options["compute-cluster"], options["scriptpath"], options["experiment"], options["date"])
         process_timing(options["outputdir"], options["compute-cluster"], options["experiment"], options["date"])
         return 0
     del options["process"]
 
-    # Only validate results
+    # Only validate results from provided commands-file
     if options["validate"]:
         if exists(options["commands-file"]):
             invalid = validate_results(options["commands-file"])
@@ -536,6 +550,7 @@ def main():
     # Run selected experiment
     experiment: int = options["experiment"]
     del options["experiment"]
+    # TODO: add new experiment number here once ready!
     if experiment == 1:
         if options["alternative"]:
             ex1_config["nodes"] = [[1]] # change to single node comparison experiment
