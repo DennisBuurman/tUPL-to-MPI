@@ -44,7 +44,8 @@ ex1_config: Dict[str, any] = {
     "dimension": [4],
     "nodes": [[8]],
     "ntasks-per-node": [[8]],
-    "repeat": "10"
+    "repeat": "10",
+    "per-iteration": False
 }
 
 # Experiment 2 default parameters
@@ -83,7 +84,8 @@ ex3_config: Dict[str, any] = {
     "dimension": [4],
     "nodes": [[8]],
     "ntasks-per-node": [[8]],
-    "repeat": "10"
+    "repeat": "10",
+    "per-iteration": False
 }
 
 # Experiment 4 default parameters (exp 2 variation)
@@ -121,7 +123,8 @@ ex5_config: Dict[str, any] = {
     "dimension": [4],
     "nodes": [[8]],
     "ntasks-per-node": [[8]],
-    "repeat": "10"
+    "repeat": "10",
+    "per-iteration": False
 }
 
 # Experiment 6 default parameters (exp 2 variation)
@@ -159,7 +162,8 @@ ex7_config: Dict[str, any] = {
     "dimension": [4],
     "nodes": [[8]],
     "ntasks-per-node": [[8]],
-    "repeat": "10"
+    "repeat": "10",
+    "per-iteration": False
 }
 
 # List of all variant names, not to be confused with executable names!
@@ -472,6 +476,8 @@ def run_experiment(config: Dict[str, any], options: Dict[str, any], ex_num: int)
     # TODO: for each new experiment, create command to visualize experiment!
     if ex_num in [1, 3, 5, 7]:
         script: str = "input-size-variation.py"
+        if "per-iteration" in options:
+            script += " --per-iteration"
     elif ex_num in [2, 4, 6]:
         script: str = "thread-count-variation.py"
     print(f"Visualize results by running:\n./{script} --compute-cluster {compute_cluster} --file-date {date} --datapath {output_dir} --ex-num {ex_num}")
@@ -508,6 +514,8 @@ def main():
                             help="Mean set to use for initialization")
     parser.add_argument("--date", dest="date", type=str, default=date,
                             help="Date used in result file name")
+    parser.add_argument("--per-iteration", action="store_true", 
+                        help="Divide calculation times by iterations for input-size-variation experiment.") 
     args = parser.parse_args()
     options: Dict[str, any] = dict(vars(args))
 
