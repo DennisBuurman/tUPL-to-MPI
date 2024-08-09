@@ -13,6 +13,7 @@ from typing import Dict
 
 # Taken from common.py by Kristian Rietveld
 def parse_job_name(jobname : str) -> dict:
+    """ Extracts labels from provided jobname. """
     m = re.match(r"([\w_]+)_s(\d+)_c(\d+)_d(\d+)_(\d+)x(\d+)_id.*", jobname)
     if not m:
         raise ValueError("Cannot parse jobname '{}'.".format(jobname))
@@ -23,6 +24,7 @@ def parse_job_name(jobname : str) -> dict:
     return params
 
 def process_file(filename: Path) -> None:
+    """ Extracts timing output from provided output file. """
     print("Processing file:", filename)
 
     params: Dict = parse_job_name(filename.name)
