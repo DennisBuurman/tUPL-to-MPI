@@ -107,7 +107,7 @@ def stacked_plot(data: Dict[str, Dict[str, float]], size: int, options: Dict[str
     plt.xlabel("Implementation")
     plt.ylabel("Time (s)")
     plt.legend(legend, loc="upper left", ncol=2)
-    plt.title("Average Iteration Time Distribution")
+    # plt.title("Average Iteration Time Distribution")
     plt.savefig(f"{datapath}/ex{ex_num}_{cluster}_ts_s{size}_{date}.png")
     plt.close()
             

@@ -187,7 +187,7 @@ def create_confidence_interval(data: Dict[str, Dict[str, List[float]]], options:
         x = np.arange(1, len(times)+1)
         mean_values, ci_values = ci_list(times)
         
-        ax.set_title(f"{names[implementation]} {cluster} 95% CI on size 2^{variable}")
+        # ax.set_title(f"{names[implementation]} {cluster} 95% CI on size 2^{variable}")
         ax.set_ylabel("Mean calculation time (s)")
         ax.set_xlabel("Iteration")
         ax.plot(x, mean_values)

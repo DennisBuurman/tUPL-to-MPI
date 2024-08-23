@@ -40,7 +40,7 @@ def create_plot(thread_count: List[int], times: Dict[str, float], options) -> No
 
     ax.set_ylabel("Calculation time (s)")
     ax.set_xlabel("Thread count")
-    ax.set_title(f"Thread count variation ({options['compute-cluster']})")
+    # ax.set_title(f"Thread count variation ({options['compute-cluster']})")
     ax.set_xticks(thread_count)
     ax.legend(loc="upper right", ncol=1)
     # ax.set_ylim(0, 3)

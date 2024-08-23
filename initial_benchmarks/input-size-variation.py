@@ -39,7 +39,7 @@ def create_plot(sizes: List[int], times: Dict[str, float], options) -> None:
     
     ax.set_ylabel("Calculation time (s)")
     ax.set_xlabel("Input size (2^x)")
-    ax.set_title(f"Input size variation: {options['compute-cluster']}")
+    # ax.set_title(f"Input size variation: {options['compute-cluster']}")
     ax.set_xticks(x + width)
     ax.set_xticklabels(sizes)
     ax.legend(loc="upper left", ncol=1)
@@ -65,7 +65,7 @@ def create_boxplots(data: Dict, options) -> None:
             times = data[implementation][size]
             box_plot_data.append(times)
             labels.append(size)
-        ax.set_title(f"{common.names[implementation]} {cluster} runtime distribution 2^{size}")
+        # ax.set_title(f"{common.names[implementation]} {cluster} runtime distribution 2^{size}")
         ax.set_ylabel("Calculation time (s)")
         ax.set_xlabel("Input size (2^x)")
         ax.boxplot(box_plot_data, patch_artist=True, labels=labels)
