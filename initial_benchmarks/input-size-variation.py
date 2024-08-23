@@ -29,7 +29,7 @@ def create_plot(sizes: List[int], times: Dict[str, float], options) -> None:
     multiplier: int = 0
 
     fig, ax = plt.subplots()
-    fig.tight_layout()
+    # fig.tight_layout()
 
     for implementation, time in times.items():
         offset: float = width * multiplier
@@ -58,7 +58,7 @@ def create_boxplots(data: Dict, options) -> None:
 
     for implementation in data:
         fig, ax = plt.subplots()
-        fig.tight_layout()
+        # fig.tight_layout()
         box_plot_data = []
         labels = []
         for size in data[implementation]:

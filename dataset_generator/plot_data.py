@@ -29,7 +29,7 @@ def plot2d(d: np.array, m: np.array, means: int, meta: Dict[str, int]) -> None:
     # Plot data
     plt.title(f"k-means 2d scatter plot (means set {means})")
     plt.legend(loc='upper left')
-    fig.tight_layout()
+    # fig.tight_layout()
     # plt.show()
     plt.savefig(f"k-means_2d_seed{meta['seed']}_size{meta['size']}_c{meta['clusters']}_m{means}.png")
     plt.close()
@@ -54,7 +54,7 @@ def plot3d(d: np.array, m: np.array, means: int, meta: Dict[str, int]) -> None:
     # Plot data
     plt.title(f"k-means 3d scatter plot (means set {means})")
     plt.legend(loc='upper left')
-    fig.tight_layout()
+    # fig.tight_layout()
     # plt.show()
     plt.savefig(f"k-means_3d_seed{meta['seed']}_size{meta['size']}_c{meta['clusters']}_m{means}.png")
     plt.close()
@@ -81,7 +81,7 @@ def plot4d(d: np.array, m: np.array, means: int, meta: Dict[str, int]) -> None:
     # Plot data
     plt.title(f"k-means 3d scatter plot (means set {means})")
     plt.legend(loc='upper left')
-    fig.tight_layout()
+    # fig.tight_layout()
     # plt.show()
     plt.savefig(f"k-means_4d_seed{meta['seed']}_size{meta['size']}_c{meta['clusters']}_m{means}.png")
     plt.close()

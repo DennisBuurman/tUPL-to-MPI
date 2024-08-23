@@ -182,7 +182,7 @@ def create_confidence_interval(data: Dict[str, Dict[str, List[float]]], options:
 
     for implementation in data:
         fig, ax = plt.subplots()
-        fig.tight_layout()
+        # fig.tight_layout()
         times: List[float] = data[implementation][variable]
         x = np.arange(1, len(times)+1)
         mean_values, ci_values = ci_list(times)

@@ -26,7 +26,7 @@ def create_plot(thread_count: List[int], times: Dict[str, float], options) -> No
     x = np.arange(len(thread_count))
 
     fig, ax = plt.subplots()
-    fig.tight_layout()
+    # fig.tight_layout()
     markers: str = "x+*2"
     count: int = 0
 
