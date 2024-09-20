@@ -234,16 +234,16 @@ def sleep_bar(seconds: int, msg="Waiting") -> None:
     for i in tqdm(range(0, seconds), total=seconds, desc=msg):
         time.sleep(1)
 
-def wait_on_queue() -> None:
-    """ Wait for all processes of a given account name to exit the queue, or 15 mins.
-        Visualized with a progress bar on the 15 min timer. Be sure to set the account_name correctly!"""
+def wait_on_queue(t: int = 30) -> None:
+    """ Wait for all processes of a given account name to exit the queue, or t mins.
+        Visualized with a progress bar on the t min timer. Be sure to set the account_name correctly!"""
     try:
         grep: str = subprocess.check_output(f"squeue | grep {account_name}", shell=True)
     except Exception as e:
         grep: str = ""
     time_spent = 0
-    pbar = tqdm(total=15*60, desc="Waiting for jobs to finish")
-    while (grep and time_spent < 15*60):
+    pbar = tqdm(total=t*60, desc="Waiting for jobs to finish")
+    while (grep and time_spent < t*60):
         time.sleep(1)
         time_spent += 1
         pbar.update(1)
