@@ -49,7 +49,7 @@ ex1_config: Dict[str, any] = {
 }
 
 # Experiment 2 default parameters
-# Compares all of Anne's variants on varying node and thread counts
+# Compares all of Anne's variants on varying node and thread counts using size 28
 # Experiment 2 from Anne's work
 ex2_config: Dict[str, any] = {
     "DAS5": {
@@ -76,6 +76,7 @@ ex2_config: Dict[str, any] = {
 
 # Experiment 3 default parameters (exp 1 variation)
 # Compares new recalculation variants using varying input sizes
+# Uses sizes 2^24 to 2^28
 ex3_config: Dict[str, any] = {
     "seed": "971",
     "variant": "own_m own_m_loc own_im own_im_loc",
@@ -129,6 +130,7 @@ ex5_config: Dict[str, any] = {
 
 # Experiment 6 default parameters (exp 2 variation)
 # Compares best veriants using varying node and thread counts
+# Not reported in thesis
 ex6_config: Dict[str, any] = {
     "DAS5": {
         "seed": "971",
@@ -166,13 +168,28 @@ ex7_config: Dict[str, any] = {
     "per-iteration": False
 }
 
+# Experiment 8 default parameters
+# Used to test the effect of adding threads;
+# More specifically, the difference between adding intra-node and inter-node threads.
+ex8_config: Dict[str, any] = {
+    "seed": "971",
+    "variant": "own_inc own_inc_loc own_m own_m_loc",
+    "size": "26",
+    "clusters": [4],
+    "dimension": [4],
+    "nodes": [[1], [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]],
+    "ntasks-per-node": [[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], [1]],
+    "repeat": "10",
+    "per-iteration": False
+}
+
 # List of all variant names, not to be confused with executable names!
 execs: List[str] = ["own", "own_inc", "own_loc", "own_inc_loc", 
                     "own_m", "own_m_loc", "own_values_only", 
                     "own_values_only_loc", "own_im", "own_im_loc"]
 
-# List of all experiment numbers ready to run. Don't forget to add the experiment number once the config is ready!
-ex_nums: List[int] = [1, 2, 3, 4, 5, 6, 7]
+# List of all experiment numbers ready to run. NOTE: Don't forget to add the experiment number once the config is ready!
+ex_nums: List[int] = [1, 2, 3, 4, 5, 6, 7, 8]
 
 debug = False
 
@@ -480,6 +497,8 @@ def run_experiment(config: Dict[str, any], options: Dict[str, any], ex_num: int)
             script += " --per-iteration"
     elif ex_num in [2, 4, 6]:
         script: str = "thread-count-variation.py"
+    elif ex_num in [8]:
+        script: str = "scaling-factor.py"
     print(f"Visualize results by running:\n./{script} --compute-cluster {compute_cluster} --file-date {date} --datapath {output_dir} --ex-num {ex_num}")
     print(f"Optional; Create timing stacks by running:\n./timing-stack.py --compute-cluster {compute_cluster} --file-date {date} --datapath {output_dir} --ex-num {ex_num}")
     return 0
@@ -575,6 +594,8 @@ def main():
         return(run_experiment(ex6_config[options["compute-cluster"]], options, experiment))
     elif experiment == 7:
         return(run_experiment(ex7_config, options, experiment))
+    elif experiment == 8:
+        return(run_experiment(ex8_config, options, experiment))
 
 
 if __name__ == "__main__":

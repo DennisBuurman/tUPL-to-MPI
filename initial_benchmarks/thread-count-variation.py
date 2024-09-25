@@ -2,8 +2,8 @@
 
 # 
 # Script to visualize results produced by process-results.py.
-# Created to produce graphs for input size variation experiment;
-# Also denoted as experiment 1.
+# Created to produce graphs for thread-count variation experiment;
+# Also denoted as experiment 2.
 # 
 # Author: Dennis Buurman, Leiden University
 
@@ -19,7 +19,7 @@ import common
 
 from typing import Dict, List
 
-def create_plot(thread_count: List[int], times: Dict[str, float], options) -> None:
+def create_plot(thread_count: List[int], times: Dict[str, float], options, log: bool=False) -> None:
     """ Creates the default plot for experiment 2: thread count variation. """
     datapath: str = options["datapath"]
     
@@ -36,7 +36,8 @@ def create_plot(thread_count: List[int], times: Dict[str, float], options) -> No
         plt.plot(thread_count, time, marker=markers[count], label=implementation)
         count += 1
     
-    # plt.yscale("log")
+    if log:
+        plt.yscale("log")
 
     ax.set_ylabel("Calculation time (s)")
     ax.set_xlabel("Thread count")
@@ -45,7 +46,10 @@ def create_plot(thread_count: List[int], times: Dict[str, float], options) -> No
     ax.legend(loc="upper right", ncol=1)
     # ax.set_ylim(0, 3)
 
-    plt.savefig(f"{datapath}/ex{options['ex-num']}_{options['compute-cluster']}_tcv_{options['file-date']}.png")
+    if log:
+        plt.savefig(f"{datapath}/ex{options['ex-num']}_{options['compute-cluster']}_tcv_log_{options['file-date']}.png")
+    else:
+        plt.savefig(f"{datapath}/ex{options['ex-num']}_{options['compute-cluster']}_tcv_{options['file-date']}.png")
     plt.close(fig)
     # plt.show()
 
@@ -57,6 +61,7 @@ def main():
     # Argument parsing
     parser: ArgumentParser = ArgumentParser()
     common.add_parameters(parser)
+    parser.add_argument('--log', action='store_true')
     args = parser.parse_args()
     options = dict(vars(args))
 
@@ -79,7 +84,8 @@ def main():
     thread_count, times = common.serialize(data)
 
     # Create Plots
-    create_plot(thread_count, times, options)
+    log: bool = True if args.log else False
+    create_plot(thread_count, times, options, log)
     data = common.process_reverse(df, variable)
     common.create_confidence_interval(data, options, 8, options["ex-num"])
 
