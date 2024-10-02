@@ -80,7 +80,7 @@ def stacked_plot(data: Dict[str, Dict[str, float]], size: int, options: Dict[str
     
     # NOTE: Y needs to be rotated and reversed before a stacked plot can be created!
     for implementation in data:
-        x.append(implementation)
+        x.append(common.names[implementation])
         y: List[float] = list()
         for v in data[implementation]:
             y.append(data[implementation][v])

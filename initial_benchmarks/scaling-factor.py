@@ -173,8 +173,8 @@ def get_scaling_factors(data: Dict[str, Dict[str, Dict[int, List[float]]]]) -> D
             comm_factor: List[float] = [1]
             for i in range(len(threads)-1):
                 index: int = i+1
-                comp_factor.append(comp_time[index]/base_comp)
-                comm_factor.append(comm_time[index]/base_comm)
+                comp_factor.append(base_comp/comp_time[index])
+                comm_factor.append(base_comm/comm_time[index])
             
             # Substitute timing lists with scaling factor lists
             data[implementation][v][0] = comp_factor
@@ -196,13 +196,13 @@ def scaling_factor_plot(data: Dict[str, List[List[any]]], implementation: str, o
     x: List[int] = d[2] # thread count list
     y_0: List[float] = d[0] # comp time scaling factors
     y_1: List[float] = d[1] # comm time scaling factors
-    plt.plot(x, y_0, label="computation time")
-    plt.plot(x, y_1, label="communication time")
+    plt.plot(x, y_0, label="computation time", marker="x")
+    plt.plot(x, y_1, label="communication time", marker="*")
 
     # plot parameters
     plt.xlabel("Thread count")
     plt.ylabel("Scaling factor")
-    plt.legend(loc="upper right", ncol=1)
+    plt.legend(loc="upper left", ncol=1)
     # plt.title("Intra-node computation vs communication scaling")
     plt.savefig(f"{datapath}/ex{ex_num}_{cluster}_{implementation}_intra_{date}.png")
     plt.close()
@@ -212,30 +212,51 @@ def scaling_factor_plot(data: Dict[str, List[List[any]]], implementation: str, o
     x: List[int] = d[2] # thread count list
     y_0: List[float] = d[0] # comp time scaling factors
     y_1: List[float] = d[1] # comm time scaling factors
-    plt.plot(x, y_0, label="computation time")
-    plt.plot(x, y_1, label="communication time")
+    plt.plot(x, y_0, label="computation time", marker="x")
+    plt.plot(x, y_1, label="communication time", marker="*")
 
     # plot parameters
     plt.xlabel("Thread count")
     plt.ylabel("Scaling factor")
-    plt.legend(loc="upper right", ncol=1)
+    plt.legend(loc="upper left", ncol=1)
     # plt.title("Inter-node computation vs communication scaling")
     plt.savefig(f"{datapath}/ex{ex_num}_{cluster}_{implementation}_inter_{date}.png")
     plt.close()
 
-    ### Intra vs Inter node plot
+    ### Intra vs Inter comp vs comm plot
+    d_0 = data["intra"]
+    d_1 = data["inter"]
+    x: List[int] = d_0[2] # thread count list
+    y_0: List[float] = d_0[0] # intra comp time scaling factors
+    y_1: List[float] = d_0[1] # intra comm time scaling factors
+    y_2: List[float] = d_1[0] # inter comp time scaling factors
+    y_3: List[float] = d_1[1] # inter comm time scaling factors
+    plt.plot(x, y_0, label="intra-node comp. time", marker="x")
+    plt.plot(x, y_1, label="intra-node comm. time", marker="*")
+    plt.plot(x, y_2, label="inter-node comp. time", marker="+")
+    plt.plot(x, y_3, label="inter-node comm. time", marker="2")
+
+    # plot parameters
+    plt.xlabel("Thread count")
+    plt.ylabel("Scaling factor")
+    plt.legend(loc="upper left", ncol=1)
+    # plt.title("Intra-node vs inter-node communication scaling")
+    plt.savefig(f"{datapath}/ex{ex_num}_{cluster}_{implementation}_intra_v_inter_{date}.png")
+    plt.close()
+
+    ### Intra vs Inter node plot comm plot
     d_0 = data["intra"]
     d_1 = data["inter"]
     x: List[int] = d_0[2] # thread count list
     y_0: List[float] = d_0[1] # comm time scaling factors
     y_1: List[float] = d_1[1] # comm time scaling factors
-    plt.plot(x, y_0, label="intra-node comm. time")
-    plt.plot(x, y_1, label="inter-node comm. time")
+    plt.plot(x, y_0, label="intra-node comm. time", marker="x")
+    plt.plot(x, y_1, label="inter-node comm. time", marker="*")
 
     # plot parameters
     plt.xlabel("Thread count")
     plt.ylabel("Scaling factor")
-    plt.legend(loc="upper right", ncol=1)
+    plt.legend(loc="upper left", ncol=1)
     # plt.title("Intra-node vs inter-node communication scaling")
     plt.savefig(f"{datapath}/ex{ex_num}_{cluster}_{implementation}_comm_intra_v_inter_{date}.png")
     plt.close()

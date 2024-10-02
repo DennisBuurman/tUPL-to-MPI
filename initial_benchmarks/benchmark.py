@@ -174,11 +174,11 @@ ex7_config: Dict[str, any] = {
 ex8_config: Dict[str, any] = {
     "seed": "971",
     "variant": "own_inc own_inc_loc own_m own_m_loc",
-    "size": "26",
+    "size": "25",
     "clusters": [4],
     "dimension": [4],
-    "nodes": [[1], [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]],
-    "ntasks-per-node": [[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], [1]],
+    "nodes": [[1], [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]],
+    "ntasks-per-node": [[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16], [1]],
     "repeat": "10",
     "per-iteration": False
 }
