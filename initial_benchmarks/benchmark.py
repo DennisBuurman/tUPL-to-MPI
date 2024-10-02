@@ -183,13 +183,39 @@ ex8_config: Dict[str, any] = {
     "per-iteration": False
 }
 
+# Experiment 9 default parameters
+# Used to test the effect of adding threads;
+# This time, the upper-bound is higher and no distinction between intra/inter-node is made.
+ex9_config: Dict[str, any] = {
+    "DAS5": {
+        "seed": "971",
+        "variant": "own_m own_m_loc own_im own_im_loc",
+        "size": "28",
+        "clusters": [4],
+        "dimension": [4],
+        "nodes": [[1], [1, 2, 3, 4, 5, 6, 7, 8, 12, 16]],
+        "ntasks-per-node": [[2, 4, 8, 12, 16, 24], [32]],
+        "repeat": "10"
+    },
+    "DAS6": {
+        "seed": "971",
+        "variant": "own_m own_m_loc own_im own_im_loc",
+        "size": "28",
+        "clusters": [4],
+        "dimension": [4],
+        "nodes": [[1], [1, 2], [1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 14, 16]],
+        "ntasks-per-node": [[2, 4, 8, 12, 16, 24], [32], [48]],
+        "repeat": "10"
+    }
+}
+
 # List of all variant names, not to be confused with executable names!
 execs: List[str] = ["own", "own_inc", "own_loc", "own_inc_loc", 
                     "own_m", "own_m_loc", "own_values_only", 
                     "own_values_only_loc", "own_im", "own_im_loc"]
 
 # List of all experiment numbers ready to run. NOTE: Don't forget to add the experiment number once the config is ready!
-ex_nums: List[int] = [1, 2, 3, 4, 5, 6, 7, 8]
+ex_nums: List[int] = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 
 debug = False
 
@@ -499,6 +525,8 @@ def run_experiment(config: Dict[str, any], options: Dict[str, any], ex_num: int)
         script: str = "thread-count-variation.py"
     elif ex_num in [8]:
         script: str = "scaling-factor.py"
+    elif ex_num in [9]:
+        script: str = "comm-comp-tcv.py"
     print(f"Visualize results by running:\n./{script} --compute-cluster {compute_cluster} --file-date {date} --datapath {output_dir} --ex-num {ex_num}")
     print(f"Optional; Create timing stacks by running:\n./timing-stack.py --compute-cluster {compute_cluster} --file-date {date} --datapath {output_dir} --ex-num {ex_num}")
     return 0
@@ -596,6 +624,8 @@ def main():
         return(run_experiment(ex7_config, options, experiment))
     elif experiment == 8:
         return(run_experiment(ex8_config, options, experiment))
+    elif experiment == 9:
+        return(run_experiment(ex8_config[options["compute-cluster"]], options, experiment))
 
 
 if __name__ == "__main__":
